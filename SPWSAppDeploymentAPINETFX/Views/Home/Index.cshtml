@@ -49,23 +49,22 @@
             <div class="col-md-3">
                 @*<p>ConnectionId</p>*@
             </div>
-
-            <div data-bind="foreach: Tasks">
-                <div class="row">
-                    <div class="col-md-3">
-                        <p data-bind="text: ImageName"></p>
-                    </div>
-                    <div class="col-md-3">
-                        <p data-bind="text: PID"></p>
-                    </div>
-                    <div class="col-md-3">
-                        <p data-bind="text: MemUsage"></p>
-                    </div>
-                    <div class="col-md-3">
-                        <button data-bind="click: KillTask">
-                            Kill Task
-                        </button>
-                    </div>
+        </div>
+        <div data-bind="foreach: Tasks" class="row">
+            <div class="row">
+                <div class="col-md-3">
+                    <p data-bind="text: ImageName"></p>
+                </div>
+                <div class="col-md-3">
+                    <p data-bind="text: PID"></p>
+                </div>
+                <div class="col-md-3">
+                    <p data-bind="text: MemUsage"></p>
+                </div>
+                <div class="col-md-3">
+                    <button data-bind="click: KillTask">
+                        Kill Task
+                    </button>
                 </div>
             </div>
         </div>
