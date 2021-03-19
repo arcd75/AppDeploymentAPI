@@ -6,6 +6,7 @@
     <title>@ViewBag.Title</title>
     @Styles.Render("~/Content/css")
     <link rel="stylesheet" href='@Url.Content("~/Content/fontawesome/css/all.min.css")' />
+    <link rel="stylesheet" href="@Url.Content("~/Content/alertify/css/alertify.min.css")"/>
     @Scripts.Render("~/bundles/modernizr")
     
     <script>
@@ -16,6 +17,9 @@
         var getAppVersionUrl = '@Url.Action("GetVersions","Apps")';
         var getAppServersUrl = '@Url.Action("GetServers","Apps")';
         var getAppsUrl = '@Url.Action("GetApps","Apps")';
+    </script>
+    <script>
+
     </script>
     @RenderSection("headerScripts", required: false);
 
@@ -55,7 +59,8 @@
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
-    <script type="module" src='@Url.Content("~/Scripts/knockout-3.5.1.js")'></script>
+    <script type="text/javascript" src='@Url.Content("~/Content/alertify/alertify.min.js")'></script>
+    <script type="text/javascript" src='@Url.Content("~/Scripts/knockout-3.5.1.js")'></script>
     @*<script type="text/javascript" src="@Url.Content("~/Content/fontawesome/js/all.min.js")"></script>*@
     <script type="text/javascript" src='@Url.Content("~/Scripts/jquery.signalR-2.4.1.min.js")'></script>
     <script type="text/javascript" src='@Url.Content("~/adhub/signalr/hubs")'></script>

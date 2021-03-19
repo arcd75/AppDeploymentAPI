@@ -62,9 +62,9 @@
         <div class="row">
             <p class="col-md-4">Apps: </p><p class="col-md-8" data-bind="text:Apps().length"></p>
         </div>
-        
-            <button>Add</button>
-        
+
+        <button data-bind="click: addAppEvent">Add</button>
+
 
         <!-- /ko -->
         <!-- ko if: Selected() == "App"-->
@@ -94,8 +94,46 @@
 
         <!-- /ko -->
         <!-- ko if: Selected() == "File"-->
-        @*<h1>FileContext</h1>*@
+        <div class="row">
+            <h5 class="col-md-4">Server:</h5><h5 class="col-md-8" data-bind="text:SelectedServer().ServerName"></h5>
+        </div>
+        <div class="row">
+            <p class="col-md-4">App: </p><p class="col-md-8" data-bind="text:SelectedApp().AppName"></p>
+        </div>
+        <div class="row">
+            <p class="col-md-4">Version: </p><p class="col-md-8" data-bind="text:SelectedVersion().AppVersionName"></p>
+        </div>
+        <div class="row">
+            <p class="col-md-4">Name: </p>
+            <!--ko if: SelectedFile() != null-->
+            <p class="col-md-8" data-bind="text:SelectedFile().AppFileName"></p>
+            <!-- /ko-->
+            <!--ko if: SelectedFile() == null-->
+            <p class="col-md-8"></p>
+            <!-- /ko -->
+        </div>
+        <div class="row">
+            <p class="col-md-4">IsFolder: </p>
+            <!--ko if: SelectedFile() != null-->
+            <p class="col-md-8" data-bind="text:SelectedFile().isFolder"></p>
+            <!-- /ko-->
+            <!--ko if: SelectedFile() == null-->
+            <p class="col-md-8"></p>
+            <!-- /ko -->
+        </div>
+        <button>Delete</button>
+        <!-- ko if: SelectedFile() != null-->
+        <!-- ko if: SelectedFile().isFolder -->
+
+        <button>Create New Directory</button>
+
+        <div class="row">
+            <h3>UploadFiles</h3>
+        </div>
         <!-- /ko -->
+        <!-- /ko -->
+        <!-- /ko -->
+
     </div>
 </div>
 
@@ -117,14 +155,16 @@
             <!-- ko template: { name: 'fileTemplate', foreach: Children } -->
             <!-- /ko -->
         </div>
-
-
-
-
-
-
-
-
+    </script>
+    <script id="formTemplate" type="text/html">
+        <form>
+            <!-- ko if : FormTemplate == "AddApp" -->
+                <div class="form-group">
+                    <label for="serverName" />
+                    <input type="text" data-bind="value: FormAddApp().ServerName" readonly />
+                </div>
+            <!-- /ko -->
+        </form>
     </script>
     <script>
         var viewModel;
@@ -314,6 +354,12 @@
                 });
         }
 
+        function FormAddApp(ServerName, AppName) {
+            var self = this;
+            self.ServerName = ko.observable(ServerName);
+            self.AppName = ko.observable(AppName)
+        }
+
         function AppFile(AppFileId, AppVersionId, AppFileName, AppFileSize, AppFileExt, isFolder, parentFolder, LastWriteTime) {
             var self = this;
             self.AppFileId = ko.observable(AppFileId);
@@ -327,12 +373,16 @@
             self.isVisible = ko.observable(false);
             self.activity = function () {
                 viewModel.Selected("File");
-                if (self.isVisible()) {
-                    self.isVisible(false);
+                viewModel.SelectedFile(self);
+                if (self.isFolder()) {
+                    if (self.isVisible()) {
+                        self.isVisible(false);
+                    }
+                    else {
+                        self.isVisible(true);
+                    }
                 }
-                else {
-                    self.isVisible(true);
-                }
+
             }
             self.Children = ko.observableArray();
             self.fileClass = ko.computed(function () {
@@ -387,13 +437,32 @@
             self.AppFiles = ko.observableArray();
             self.ProcessedFiles = ko.observableArray();
             self.SelectedFiles = ko.observableArray();
+            self.SelectedFile = ko.observable();
             self.SelectedServer = ko.observable();
             self.SelectedApp = ko.observable();
             self.SelectedVersion = ko.observable();
             self.Selected = ko.observable();
+
+
+            self.FormTemplate = ko.observable();
+            self.FormAddApp = ko.observable();
+            self.addAppEvent = function () {
+                self.FormTemplate("AddApp");
+                self.FormAddApp(self.SelectedServer().ServerName, "");
+                alertify.addForms("<!-- ko template: { name: 'formTemplate' } --> <!-- /ko -->");
+            }
+
+           
+            alertify.dialog('addForms', function factory() {
+                return {
+                    build: function () {
+                        //setHeaderorstuffhere
+                        var header = '<h2>Header</h2>';
+                        this.setHeader(header);
+                    }
+                }, true, 'alert'
+            });
             GetServers();
-
-
         }
 
 
