@@ -3,3 +3,6 @@
 ################################################################################
 
 /.vs/SPWSAppDeploymentAPINETFX/config
+/SPWSAppDeploymentAPINETFX/bin
+/.vs/SPWSAppDeploymentAPINETFX/v16
+/SPWSAppDeploymentAPINETFX/obj
