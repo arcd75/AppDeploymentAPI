@@ -135,7 +135,9 @@ namespace SPWSAppDeploymentAPINETFX.Controllers
                     IPAddress = "172.17.147.71";
                 }
                 var si = ServerInstance.serverInstances.FirstOrDefault(s=>s.IPAddress == IPAddress);
-                result = Newtonsoft.Json.JsonConvert.SerializeObject(si.lAppFile.Where(lAF => lAF.AppFileId == AppFileId).ToList());
+                var data =  si.Database.SqlQuery<AppFileBlob>($"Select * From dbo.AppFileBlobs where AppFileId = {AppFileId}").First();
+                result = Newtonsoft.Json.JsonConvert.SerializeObject(data);
+                //result = Newtonsoft.Json.JsonConvert.SerializeObject(si.lAppFile.Where(lAF => lAF.AppFileId == AppFileId).ToList());
             }
             catch (Exception ex)
             {
