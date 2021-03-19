@@ -156,16 +156,16 @@
             <!-- /ko -->
         </div>
     </script>
-    <script id="formTemplate" type="text/html">
-        <form>
+    <!--<script id="formTemplate" type="text/html">
+        <form>-->
             <!-- ko if : FormTemplate == "AddApp" -->
-                <div class="form-group">
+                <!--<div class="form-group">
                     <label for="serverName" />
                     <input type="text" data-bind="value: FormAddApp().ServerName" readonly />
-                </div>
+                </div>-->
             <!-- /ko -->
-        </form>
-    </script>
+        <!--</form>
+    </script>-->
     <script>
         var viewModel;
         function drop(e) {
@@ -448,20 +448,39 @@
             self.FormAddApp = ko.observable();
             self.addAppEvent = function () {
                 self.FormTemplate("AddApp");
-                self.FormAddApp(self.SelectedServer().ServerName, "");
-                alertify.addForms("<!-- ko template: { name: 'formTemplate' } --> <!-- /ko -->");
+                self.FormAddApp(new FormAddApp(self.SelectedServer().ServerName, ""));
+                //alertify.addForms("<!-- ko template: { name: 'formTemplate' } --> <!-- /ko -->");
+                var s =
+                    '<form>'+
+                    '<div class="form-group">' +
+                    '<label for="serverName" >Server: </label>' +
+                    '<input type="text" data-bind="value: FormAddApp().ServerName,text: FormAddApp().ServerName" />' +
+                    '</div>' +
+                    '</form>';
+                alertify.testAlert(s);
             }
 
            
-            alertify.dialog('addForms', function factory() {
+            //alertify.dialog('addForms', function factory() {
+            //    return {
+            //        build: function () {
+            //            //setHeaderorstuffhere
+            //            var header = '<h2>Header</h2>';
+            //            this.setHeader(header);
+            //            this.setContent("<div>LOL</div>")
+            //        }
+            //    }, true, 'alert'
+            //});
+            alertify.dialog('testAlert', function factory() {
                 return {
                     build: function () {
-                        //setHeaderorstuffhere
-                        var header = '<h2>Header</h2>';
-                        this.setHeader(header);
+                        var errorHeader = '<span class="fa fa-times-circle fa-2x" '
+                            + 'style="vertical-align:middle;color:#e10000;">'
+                            + '</span> Application Error';
+                        this.setHeader(errorHeader);
                     }
-                }, true, 'alert'
-            });
+                };
+            }, true, 'alert');
             GetServers();
         }
 

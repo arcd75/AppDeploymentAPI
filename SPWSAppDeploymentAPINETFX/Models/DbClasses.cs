@@ -175,7 +175,7 @@ namespace SPWSAppDeploymentAPINETFX.Models
             lApps = this.Database.SqlQuery<App>("SELECT * FROM dbo.Apps").ToList();
             lAppVersion = this.Database.SqlQuery<AppVersion>("SELECT * FROM dbo.AppVersions").ToList();
             lAppFiles = this.Database.SqlQuery<AppFile>("SELECT * FROM dbo.AppFiles").ToList();
-            lAppFile = this.Database.SqlQuery<AppFileBlob>("SELECT * FROM dbo.AppFileBlobs").ToList();
+            //lAppFile = this.Database.SqlQuery<AppFileBlob>("SELECT * FROM dbo.AppFileBlobs").ToList();
 
         }
         public DbSet<App> Apps { get; set; }
