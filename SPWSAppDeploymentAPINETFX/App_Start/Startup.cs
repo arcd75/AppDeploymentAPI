@@ -22,10 +22,12 @@ namespace SPWSAppDeploymentAPINETFX
             ADHub.sRequest = new List<ADHub.ServerRequest>();
             await ServerProfile.ReloadLocal();
             await SystemInstallationRecord.ReloadLocal();
+            ServerInstance.serverInstances = new List<ServerInstance>();
             foreach (var item in ServerProfile.local)
             {
-                var devserverContext = new ServerInstance("172.17.147.86", "sa", "devdbsvr");
-                var acsserverContext = new ServerInstance("172.17.147.71", "sa", "spwsadmin");
+                ServerInstance.serverInstances.Add(new ServerInstance(item.IPAddress, item.Username, item.Password));
+                //var devserverContext = new ServerInstance("172.17.147.86", "sa", "devdbsvr");
+                //var acsserverContext = new ServerInstance("172.17.147.71", "sa", "spwsadmin");
             }
         }
         public void Configuration(IAppBuilder app)

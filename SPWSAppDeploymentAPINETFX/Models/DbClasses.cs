@@ -77,7 +77,7 @@ namespace SPWSAppDeploymentAPINETFX.Models
         public int AppFileId { get; set; }
         public int AppVersionId { get; set; }
         public string AppFileName { get; set; }
-        public int AppFileSize { get; set; }
+        public string AppFileSize { get; set; }
         public string AppFileExt { get; set; }
         public bool isFolder { get; set; }
         public int parentFolder { get; set; }
@@ -172,6 +172,10 @@ namespace SPWSAppDeploymentAPINETFX.Models
             this.Password = Password;
             this.Database.Connection.ConnectionString = this.ConnectionString;
             this.Database.Connection.Open();
+            lApps = this.Database.SqlQuery<App>("SELECT * FROM dbo.Apps").ToList();
+            lAppVersion = this.Database.SqlQuery<AppVersion>("SELECT * FROM dbo.AppVersions").ToList();
+            lAppFiles = this.Database.SqlQuery<AppFile>("SELECT * FROM dbo.AppFiles").ToList();
+
         }
         public DbSet<App> Apps { get; set; }
         public DbSet<AppFile> AppFiles { get; set; }

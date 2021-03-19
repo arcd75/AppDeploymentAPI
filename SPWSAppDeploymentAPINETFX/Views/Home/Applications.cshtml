@@ -1,0 +1,487 @@
+﻿@*<div id="area" style="height:200px;background:silver;" ondrop="drop(event)" ondragover="dragover(event)">
+        <input type="file" multiple />
+    </div>*@
+<div class="row">
+    <div class="col-md-2">
+        <h2>Servers</h2>
+        <!-- ko foreach: Servers-->
+        <div class="row">
+            <button data-bind="
+                    text:ServerName,
+                    click: SelectServer"></button>
+        </div>
+        <!-- /ko-->
+
+    </div>
+    <div class="col-md-2">
+        <h2>Apps</h2>
+        <!-- ko foreach: Apps-->
+        <div class="row">
+            <button data-bind="
+                    text:AppName,
+                    click: SelectApp"></button>
+        </div>
+        <!-- /ko-->
+    </div>
+    <div class="col-md-2">
+        <h2>Version</h2>
+        <!-- ko foreach: Versions-->
+        <div class="row">
+            <button data-bind="
+                    text: AppVersionName,
+                    click: SelectVersion"></button>
+        </div>
+        <!-- /ko -->
+    </div>
+    <div class="col-md-4 container">
+        <h2>Files</h2>
+        <div class="row">
+            <div class="col-md-1">
+                <input type="checkbox" />
+            </div>
+            <div class="col-md-11">
+                FileName
+            </div>
+
+        </div>
+        <!-- ko foreach: ProcessedFiles-->
+        <div class="row" data-bind="template: { name : 'fileTemplate' , data: $data}">
+
+        </div>
+
+        <!-- /ko -->
+
+    </div>
+    <div class="col-md-2">
+        <h2>Controls</h2>
+        <p data-bind="text:$root.Selected"></p>
+        <!-- ko if: Selected() == "Server" -->
+        <div class="row">
+            <h5 class="col-md-4">Server:</h5><h5 class="col-md-8" data-bind="text:SelectedServer().ServerName"></h5>
+        </div>
+        <div class="row">
+            <p class="col-md-4">Apps: </p><p class="col-md-8" data-bind="text:Apps().length"></p>
+        </div>
+
+        <button data-bind="click: addAppEvent">Add</button>
+
+
+        <!-- /ko -->
+        <!-- ko if: Selected() == "App"-->
+        <div class="row">
+            <h5 class="col-md-4">Server:</h5><h5 class="col-md-8" data-bind="text:SelectedServer().ServerName"></h5>
+        </div>
+        <div class="row">
+            <p class="col-md-4">App: </p><p class="col-md-8" data-bind="text:SelectedApp().AppName"></p>
+        </div>
+        <button>Delete</button>
+        <p>Versions: </p>
+
+        <button>Add</button>
+        <!-- /ko -->
+        <!-- ko if: Selected() == "Version"-->
+        <div class="row">
+            <h5 class="col-md-4">Server:</h5><h5 class="col-md-8" data-bind="text:SelectedServer().ServerName"></h5>
+        </div>
+        <div class="row">
+            <p class="col-md-4">App: </p><p class="col-md-8" data-bind="text:SelectedApp().AppName"></p>
+        </div>
+        <div class="row">
+            <p class="col-md-4">Version: </p><p class="col-md-8" data-bind="text:SelectedVersion().AppVersionName"></p>
+        </div>
+
+        <button>Delete</button>
+
+        <!-- /ko -->
+        <!-- ko if: Selected() == "File"-->
+        <div class="row">
+            <h5 class="col-md-4">Server:</h5><h5 class="col-md-8" data-bind="text:SelectedServer().ServerName"></h5>
+        </div>
+        <div class="row">
+            <p class="col-md-4">App: </p><p class="col-md-8" data-bind="text:SelectedApp().AppName"></p>
+        </div>
+        <div class="row">
+            <p class="col-md-4">Version: </p><p class="col-md-8" data-bind="text:SelectedVersion().AppVersionName"></p>
+        </div>
+        <div class="row">
+            <p class="col-md-4">Name: </p>
+            <!--ko if: SelectedFile() != null-->
+            <p class="col-md-8" data-bind="text:SelectedFile().AppFileName"></p>
+            <!-- /ko-->
+            <!--ko if: SelectedFile() == null-->
+            <p class="col-md-8"></p>
+            <!-- /ko -->
+        </div>
+        <div class="row">
+            <p class="col-md-4">IsFolder: </p>
+            <!--ko if: SelectedFile() != null-->
+            <p class="col-md-8" data-bind="text:SelectedFile().isFolder"></p>
+            <!-- /ko-->
+            <!--ko if: SelectedFile() == null-->
+            <p class="col-md-8"></p>
+            <!-- /ko -->
+        </div>
+        <button>Delete</button>
+        <!-- ko if: SelectedFile() != null-->
+        <!-- ko if: SelectedFile().isFolder -->
+
+        <button>Create New Directory</button>
+
+        <div class="row">
+            <h3>UploadFiles</h3>
+        </div>
+        <!-- /ko -->
+        <!-- /ko -->
+        <!-- /ko -->
+
+    </div>
+</div>
+
+@section headerScripts
+{
+    <script id="fileTemplate" type="text/html">
+
+        <div class="col-md-1">
+            <input type="checkbox" data-bind="checkedValue: $data, checked: $root.SelectedFiles" />
+        </div>
+        <div class="col-md-11">
+            <i data-bind="class: fileClass"></i>
+            <button class="col-md-10 " data-bind="text:AppFileName, click: activity" style="text-align:left;">
+            </button>
+
+        </div>
+
+        <div data-bind="visible: isVisible">
+            <!-- ko template: { name: 'fileTemplate', foreach: Children } -->
+            <!-- /ko -->
+        </div>
+    </script>
+    <script id="formTemplate" type="text/html">
+        <form>
+            <!-- ko if : FormTemplate == "AddApp" -->
+                <div class="form-group">
+                    <label for="serverName" />
+                    <input type="text" data-bind="value: FormAddApp().ServerName" readonly />
+                </div>
+            <!-- /ko -->
+        </form>
+    </script>
+    <script>
+        var viewModel;
+        function drop(e) {
+            console.log(e);
+            e.preventDefault();
+            if (e.dataTransfer.items) {
+                for (var i = 0; i < e.dataTransfer.items.length; i++) {
+                    if (e.dataTransfer.items[i].kind === 'file') {
+                        var file = e.dataTransfer.items[i].getAsFile();
+                        console.log('... file[' + i + '].name = ' + file.name);
+                    }
+                }
+            }
+            else {
+                // Use DataTransfer interface to access the file(s)
+                for (var i = 0; i < ev.dataTransfer.files.length; i++) {
+                    console.log('... file[' + i + '].name = ' + ev.dataTransfer.files[i].name);
+                }
+
+            }
+        }
+
+        function dragover(e) {
+            //console.log(e);
+            e.preventDefault();
+        }
+
+        async function ProcessChildren(parent, AppFileId) {
+            var files = ko.utils.arrayFilter(viewModel.AppFiles(), function (af) {
+                return af.parentFolder() == AppFileId && af.isFolder() == false;
+            });
+            var folders =
+                ko.utils.arrayFilter(viewModel.AppFiles(), function (af) {
+                    return af.parentFolder() == AppFileId && af.isFolder() == true;
+                });
+            if (folders.length > 0) {
+                for (var i = 0; i < folders.length; i++) {
+                    var folder = folders[i];
+                    await ProcessChildren(folder, folder.AppFileId());
+                    parent.Children.push(folder);
+
+                }
+            }
+            if (files.length > 0) {
+
+                for (var i = 0; i < files.length; i++) {
+                    var file = files[i];
+                    file.isVisible(false);
+                    parent.Children.push(file);
+                }
+            }
+        }
+
+
+        async function ProcessFiles(AppFileId) {
+            var files = ko.utils.arrayFilter(viewModel.AppFiles(), function (af) {
+                return af.parentFolder() == AppFileId && af.isFolder() == false;
+            });
+            var folders =
+                ko.utils.arrayFilter(viewModel.AppFiles(), function (af) {
+                    return af.parentFolder() == AppFileId && af.isFolder() == true;
+                });
+            var parent = ko.utils.arrayFirst(viewModel.ProcessedFiles(), function (af) {
+                return af.AppFileId() == AppFileId;
+            });
+            if (typeof parent != "undefined") {
+                if (folders.length > 0) {
+                    for (var i = 0; i < folders.length; i++) {
+                        var folder = folders[i];
+                        await ProcessChildren(folder, folder.AppFileId());
+                        parent.Children.push(folder);
+
+                    }
+                }
+                if (files.length > 0) {
+
+                    for (var i = 0; i < files.length; i++) {
+                        var file = files[i];
+                        parent.Children.push(file);
+                    }
+                }
+
+            }
+
+
+
+
+
+        }
+
+        function GetFiles(ServerName, AppId, AppVersionId) {
+            $.ajax(getAppFilesUrl + "/" + ServerName + "/" + AppId + "/" + AppVersionId,
+                {
+                    method: "GET",
+                    dataType: "application/json",
+                    statusCode: {
+                        200: function (data) {
+                            console.log(data);
+                            viewModel.AppFiles([]);
+                            var processedText = data.responseText.replaceAll('""', '"');
+                            var parsedData = JSON.parse(processedText);
+                            parsedData = JSON.parse(parsedData);
+                            for (var i = 0; i < parsedData.length; i++) {
+                                var instance = parsedData[i];
+                                viewModel.AppFiles.push(new AppFile(instance.AppFileId, instance.AppVersionId, instance.AppFileName, instance.AppFileSize, instance.AppFileExt, instance.isFolder, instance.parentFolder, instance.LastWriteTime));
+                            }
+                            viewModel.ProcessedFiles([]);
+                            viewModel.ProcessedFiles.push(new AppFile(0, viewModel.SelectedVersion().AppVersionId(), viewModel.SelectedVersion().AppVersionName(), "0", "", true, 0, ""));
+                            ProcessFiles(0);
+                        }
+                    }
+                });
+        }
+
+        function GetVersions(ServerName, AppId) {
+            $.ajax(getAppVersionUrl + "/" + ServerName + "/" + AppId,
+                {
+                    method: "GET",
+                    dataType: "application/json",
+                    statusCode: {
+                        200: function (data) {
+                            console.log(data);
+                            viewModel.Versions([]);
+                            viewModel.SelectedVersion = ko.observable();
+                            viewModel.AppFiles([]);
+                            viewModel.ProcessedFiles([]);
+                            var processedText = data.responseText.replaceAll('""', '"');
+                            var parsedData = JSON.parse(processedText);
+                            parsedData = JSON.parse(parsedData);
+                            for (var i = 0; i < parsedData.length; i++) {
+                                var instance = parsedData[i];
+                                viewModel.Versions.push(new Version(instance.AppVersionId, instance.AppId, instance.AppVersionName, instance.isMajorRevision, instance.Date));
+                            }
+
+                        }
+                    }
+
+                })
+        }
+
+        function GetApps(ServerName) {
+            $.ajax(getAppsUrl + "/" + ServerName,
+                {
+                    method: "GET",
+                    dataType: "application/json",
+                    statusCode: {
+                        200: function (data) {
+                            console.log(data);
+                            viewModel.Apps([]);
+                            viewModel.SelectedApp = ko.observable();
+                            viewModel.Versions([]);
+                            viewModel.SelectedVersion = ko.observable();
+                            viewModel.AppFiles([]);
+                            viewModel.ProcessedFiles([]);
+                            //viewModel.SelectedFiles =
+                            var processedText = data.responseText.replaceAll('""', '"');
+                            var parsedData = JSON.parse(processedText);
+                            parsedData = JSON.parse(parsedData);
+                            for (var i = 0; i < parsedData.length; i++) {
+                                var instance = parsedData[i]
+                                viewModel.Apps.push(new App(instance.AppId, instance.AppName));
+                            }
+                        }
+                    }
+                });
+        }
+
+        function GetServers() {
+            $.ajax(getAppServersUrl,
+                {
+                    method: "GET",
+                    dataType: "application/json",
+                    statusCode: {
+                        200: function (data) {
+                            console.log(data);
+                            viewModel.Servers([]);
+                            var processedText = data.responseText.replaceAll('""', '"');
+                            var parsedData = JSON.parse(processedText);
+                            parsedData = JSON.parse(parsedData);
+                            for (var i = 0; i < parsedData.length; i++) {
+                                var instance = parsedData[i];
+                                viewModel.Servers.push(new Server(instance.IPAddress, instance.ServerName));
+                            }
+                        }
+                    }
+                });
+        }
+
+        function FormAddApp(ServerName, AppName) {
+            var self = this;
+            self.ServerName = ko.observable(ServerName);
+            self.AppName = ko.observable(AppName)
+        }
+
+        function AppFile(AppFileId, AppVersionId, AppFileName, AppFileSize, AppFileExt, isFolder, parentFolder, LastWriteTime) {
+            var self = this;
+            self.AppFileId = ko.observable(AppFileId);
+            self.AppVersionId = ko.observable(AppVersionId);
+            self.AppFileName = ko.observable(AppFileName);
+            self.AppFileSize = ko.observable(AppFileSize);
+            self.AppFileExt = ko.observable(AppFileExt);
+            self.isFolder = ko.observable(isFolder);
+            self.parentFolder = ko.observable(parentFolder);
+            self.LastWriteTime = ko.observable(LastWriteTime);
+            self.isVisible = ko.observable(false);
+            self.activity = function () {
+                viewModel.Selected("File");
+                viewModel.SelectedFile(self);
+                if (self.isFolder()) {
+                    if (self.isVisible()) {
+                        self.isVisible(false);
+                    }
+                    else {
+                        self.isVisible(true);
+                    }
+                }
+
+            }
+            self.Children = ko.observableArray();
+            self.fileClass = ko.computed(function () {
+                return self.isFolder() ? "col-md-2 fas fa-folder " : "col-md-2 fa fa-file ";
+            })
+        }
+
+        function Version(AppVersionId, AppId, AppVersionName, isMajorRevision, Date) {
+            var self = this;
+            self.AppVersionId = ko.observable(AppVersionId);
+            self.AppId = ko.observable(AppId);
+            self.AppVersionName = ko.observable(AppVersionName);
+            self.isMajorRevision = ko.observable(isMajorRevision);
+            self.Date = ko.observable(Date);
+            self.SelectVersion = function () {
+                viewModel.SelectedVersion(self);
+                GetFiles(viewModel.SelectedServer().ServerName(), viewModel.SelectedApp().AppId(), self.AppVersionId());
+                viewModel.Selected("Version");
+            }
+
+        }
+
+
+
+        function App(AppId, AppName) {
+            var self = this;
+            self.AppId = ko.observable(AppId);
+            self.AppName = ko.observable(AppName);
+            self.SelectApp = function () {
+                viewModel.SelectedApp(self);
+                GetVersions(viewModel.SelectedServer().ServerName(), self.AppId());
+                viewModel.Selected("App");
+            }
+        }
+
+        function Server(IPAddress, ServerName) {
+            var self = this;
+            self.IPAddress = ko.observable(IPAddress);
+            self.ServerName = ko.observable(ServerName);
+            self.SelectServer = function () {
+                viewModel.SelectedServer(self);
+                GetApps(self.ServerName());
+                viewModel.Selected("Server");
+            }
+        }
+
+        function ViewModel() {
+            var self = this;
+            self.Servers = ko.observableArray();
+            self.Apps = ko.observableArray();
+            self.Versions = ko.observableArray();
+            self.AppFiles = ko.observableArray();
+            self.ProcessedFiles = ko.observableArray();
+            self.SelectedFiles = ko.observableArray();
+            self.SelectedFile = ko.observable();
+            self.SelectedServer = ko.observable();
+            self.SelectedApp = ko.observable();
+            self.SelectedVersion = ko.observable();
+            self.Selected = ko.observable();
+
+
+            self.FormTemplate = ko.observable();
+            self.FormAddApp = ko.observable();
+            self.addAppEvent = function () {
+                self.FormTemplate("AddApp");
+                self.FormAddApp(self.SelectedServer().ServerName, "");
+                alertify.addForms("<!-- ko template: { name: 'formTemplate' } --> <!-- /ko -->");
+            }
+
+           
+            alertify.dialog('addForms', function factory() {
+                return {
+                    build: function () {
+                        //setHeaderorstuffhere
+                        var header = '<h2>Header</h2>';
+                        this.setHeader(header);
+                    }
+                }, true, 'alert'
+            });
+            GetServers();
+        }
+
+
+    </script>
+}
+
+@section scripts
+{
+    <script type="text/javascript">
+        //$(document).ready(function () {
+        //    $(document).on('drop', '#area', function (e) {
+        //        console.log(e);
+        //    });
+        //});
+        $(document).ready(function () {
+            viewModel = new ViewModel();
+            ko.applyBindings(viewModel);
+        });
+
+
+    </script>
+}

@@ -1,0 +1,137 @@
+﻿@section headerScripts
+{
+    <script type="text/javascript">
+        var viewModel;
+        function Client(ConnectionId,HostName,IPAddress) {
+            var self = this;
+            self.ConnectionId = ko.observable(ConnectionId);
+            self.HostName = ko.observable(HostName);
+            self.IPAddress = ko.observable(IPAddress);
+            self.Url = (getClientTaskUrl + "/" + self.HostName());
+            self.isSelected = ko.observable();
+            self.GetTasks = function () {
+                $.ajax(self.Url,
+                    {
+                        method: "GET",
+                        dataType: 'application/json',
+                        statusCode:
+                        {
+                            200: function (data) {
+                                console.log(data);
+                                viewModel.Tasks([]);
+                                //var processedText = data.responseText.replaceAll("\\", "");
+                                //processedText = processedText.replaceAll("\"", '"');
+                                //processedText = processedText.trim('\'');
+                                var parsedData = JSON.parse(data.responseText);
+                                parsedData = JSON.parse(parsedData);
+                                for (var i = 0; i < parsedData.length; i++) {
+                                    var currentData = parsedData[i];
+                                    var task = new Task(currentData.ImageName, currentData.PID, currentData.MemUsage);
+                                    viewModel.Tasks.push(task);
+                                }
+                                //viewModel.SelectedClient(self);
+                            }
+                        }
+                    }
+                )
+            }
+            self.updateSelectText = function () {
+                viewModel.selectedClients();
+            };
+        }
+
+        function RefreshClients() {
+
+            $.ajax(getClientsUrl,
+                {
+                    method: "GET",
+                    dataType: "application/json",
+                    statusCode:
+                    {
+                        200: function (data) {
+                            console.log(data);
+                            //var processedText = data.responseText.replaceAll("\\", "");
+                            //processedText = processedText.replaceAll("\"", '"');
+                            var processedText = data.responseText.replaceAll('""', '"');
+                            var parsedData = JSON.parse(processedText);
+                            parsedData = JSON.parse(parsedData);
+                            viewModel.Clients([]);
+                            for (var i = 0; i < parsedData.length; i++) {
+                                var currentData = parsedData[i];
+
+                                var client = new Client(currentData.ConnectionId, currentData.HostName, currentData.IPAddress);
+
+                                viewModel.Clients.push(client);
+
+                            }
+
+                        }
+                    }
+                });
+        }
+
+        function ViewModel() {
+            var self = this;
+            self.Clients = ko.observableArray();
+            self.selectedClients = ko.observableArray();
+            self.selectedClientsCount = ko.pureComputed(function () {
+                return self.selectedClients().length;
+            });
+            self.selectedText = ko.pureComputed(function () {
+                if (self.selectedClientsCount() == 0) {
+                    return "Please select a client";
+                }
+                else if (self.selectedClientsCount() == 1) {
+                    return "Selected 1 client";
+                }
+                else if (self.selectedClientsCount() > 1) {
+                    return "Selected " + self.selectedClientsCount() + " clients"; 
+                }
+            });
+        }
+    </script>
+}
+
+<div class="row">
+    <h1>Header / Sorting / Filter</h1>
+</div>
+<div class="row">
+    <div class="col-md-8" style="background:green;">
+        <h5>Clients</h5>
+        <div data-bind="foreach: Clients">
+            <div class="col-md-3">
+                <input type="checkbox" data-bind="
+                       checkedValue : $data,
+                       checked: $root.selectedClients
+                     "/>
+                <h5 data-bind="text: HostName"></h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4" style="background:orange;">
+        <h5>Controls</h5>
+        <p data-bind="text:selectedText"></p>
+    </div>
+
+</div>
+
+@section scripts
+{
+    <script type="text/javascript">
+       
+        $(document).ready(function () {
+            $.support.cors = !0;
+
+            adHub = $.connection.aDHub;
+            adHub.client.updateNetClients = function () {
+                RefreshClients();
+            };
+            $.connection.hub.start().done(function () {
+                adHub.server.webJoin(location.hostname);
+            });
+            viewModel = new ViewModel();
+            ko.applyBindings(viewModel);
+            RefreshClients();
+        });
+    </script>
+}

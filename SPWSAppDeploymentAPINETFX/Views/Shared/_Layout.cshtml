@@ -5,16 +5,27 @@
     <meta name="viewport" content="width=device-width" />
     <title>@ViewBag.Title</title>
     @Styles.Render("~/Content/css")
+    <link rel="stylesheet" href='@Url.Content("~/Content/fontawesome/css/all.min.css")' />
+    <link rel="stylesheet" href="@Url.Content("~/Content/alertify/css/alertify.min.css")"/>
     @Scripts.Render("~/bundles/modernizr")
-  
-   
-
-    <script type="text/javascript" src='@Url.Content("~/Scripts/main.js")'></script>
+    
     <script>
         var getClientsUrl = '@Url.Action("GetClients","AD")';
         var getClientTaskUrl = '@Url.Action("GetClientTask","AD")';
         var killClientTaskUrl = '@Url.Action("KillTask","AD")';
+        var getAppFilesUrl = '@Url.Action("GetFiles","Apps")';
+        var getAppVersionUrl = '@Url.Action("GetVersions","Apps")';
+        var getAppServersUrl = '@Url.Action("GetServers","Apps")';
+        var getAppsUrl = '@Url.Action("GetApps","Apps")';
     </script>
+    <script>
+
+    </script>
+    @RenderSection("headerScripts", required: false);
+
+
+
+
 </head>
 <body>
     <div class="navbar navbar-inverse navbar-fixed-top">
@@ -30,6 +41,9 @@
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
                     <li>@Html.ActionLink("Home", "Index", "Home", new { area = "" }, null)</li>
+                    <li>@Html.ActionLink("Monitoring", "Monitoring", "Home", new { area = "" }, null)</li>
+                    <li>@Html.ActionLink("Applications", "Applications", "Home", new { area = "" }, null)</li>
+                    <li>@Html.ActionLink("Settings", "Settings", "Home", new { area = "" }, null)</li>
                     <li>@Html.ActionLink("API", "Index", "Help", new { area = "" }, null)</li>
                 </ul>
             </div>
@@ -45,11 +59,13 @@
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
-    <script type="module" src='@Url.Content("~/Scripts/knockout-3.5.1.js")'></script>
+    <script type="text/javascript" src='@Url.Content("~/Content/alertify/alertify.min.js")'></script>
+    <script type="text/javascript" src='@Url.Content("~/Scripts/knockout-3.5.1.js")'></script>
+    @*<script type="text/javascript" src="@Url.Content("~/Content/fontawesome/js/all.min.js")"></script>*@
     <script type="text/javascript" src='@Url.Content("~/Scripts/jquery.signalR-2.4.1.min.js")'></script>
     <script type="text/javascript" src='@Url.Content("~/adhub/signalr/hubs")'></script>
     @RenderSection("scripts", required: false)
 
-    <script type="text/javascript" src='@Url.Content("~/Scripts/ready.js")'></script>
+  
 </body>
 </html>

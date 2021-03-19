@@ -14,5 +14,25 @@ namespace SPWSAppDeploymentAPINETFX.Controllers
 
             return View();
         }
+
+        public ActionResult Monitoring()
+        {
+            ViewBag.Title = "Monitoring";
+
+            return View();
+        }
+
+        public ActionResult Settings()
+        {
+            ViewBag.Title = "Settings";
+            return View();
+        }
+
+        public ActionResult Applications()
+        {
+            ViewBag.Title = "Applications";
+
+            return View();
+        }
     }
 }
