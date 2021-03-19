@@ -120,6 +120,30 @@ namespace SPWSAppDeploymentAPINETFX.Controllers
             return result;
         }
 
+        [Route("Apps/GetFile/{ServerName}/{AppFileId}")]
+        public string GetFile(string ServerName, int AppFileId) {
+            string result = "";
+            try
+            {
+                string IPAddress = "";
+                if (ServerName == "DevServer")
+                {
+                    IPAddress = "172.17.147.86";
+                }
+                else if (ServerName == "ACSServer")
+                {
+                    IPAddress = "172.17.147.71";
+                }
+                var si = ServerInstance.serverInstances.FirstOrDefault(s=>s.IPAddress == IPAddress);
+                result = Newtonsoft.Json.JsonConvert.SerializeObject(si.lAppFile.Where(lAF => lAF.AppFileId == AppFileId).ToList());
+            }
+            catch (Exception ex)
+            {
+                result = ex.ToString();
+            }
+            return result;
+        }
+
         public class ServerInstanceResponse
         {
             public string ServerName { 
