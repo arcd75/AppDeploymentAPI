@@ -1,141 +1,247 @@
 ﻿@*<div id="area" style="height:200px;background:silver;" ondrop="drop(event)" ondragover="dragover(event)">
         <input type="file" multiple />
     </div>*@
-<div class="row">
-    <div class="col-md-2">
-        <h2>Servers</h2>
-        <!-- ko foreach: Servers-->
-        <div class="row">
-            <button data-bind="
+<style>
+    button {
+        width: 100%;
+        text-align: left;
+    }
+</style>
+<div class="container-fluid" style="max-height:80vh; height:80vh;">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="container-fluid">
+                <div class="col-md">
+                    <h2>Servers</h2>
+                    <div style="max-height:8vh;overflow-x:auto;">
+
+                        <!-- ko foreach: Servers-->
+                        <div>
+                            <button data-bind="
                     text:ServerName,
-                    click: SelectServer"></button>
-        </div>
-        <!-- /ko-->
+                    click: SelectServer" style="text-overflow:ellipsis;"></button>
+                        </div>
+                        <!-- /ko-->
+                    </div>
 
-    </div>
-    <div class="col-md-2">
-        <h2>Apps</h2>
-        <!-- ko foreach: Apps-->
-        <div class="row">
-            <button data-bind="
+                    <h2>Apps</h2>
+                    <div style="max-height:28vh;overflow-x:auto;">
+
+                        <!-- ko foreach: Apps-->
+                        <div>
+                            <button data-bind="
                     text:AppName,
-                    click: SelectApp"></button>
-        </div>
-        <!-- /ko-->
-    </div>
-    <div class="col-md-2">
-        <h2>Version</h2>
-        <!-- ko foreach: Versions-->
-        <div class="row">
-            <button data-bind="
+                    click: SelectApp" style="text-overflow:ellipsis;"></button>
+                        </div>
+                        <!-- /ko-->
+                    </div>
+                    <h2>Version</h2>
+
+                    <div style="max-height:28vh;overflow-x:auto;">
+
+                        <!-- ko foreach: Versions-->
+                        <div>
+                            <button data-bind="
                     text: AppVersionName,
-                    click: SelectVersion"></button>
-        </div>
-        <!-- /ko -->
-    </div>
-    <div class="col-md-4 container">
-        <h2>Files</h2>
-        <div class="row">
-            <div class="col-md-1">
-                <input type="checkbox" />
-            </div>
-            <div class="col-md-11">
-                FileName
+                    click: SelectVersion" style="text-overflow:ellipsis;"></button>
+                        </div>
+                        <!-- /ko -->
+                    </div>
+                </div>
+
             </div>
 
         </div>
-        <!-- ko foreach: ProcessedFiles-->
-        <div class="row" data-bind="template: { name : 'fileTemplate' , data: $data}">
 
-        </div>
+        <div class="col-md-7 container">
 
-        <!-- /ko -->
+            <h2>Files</h2>
+            <div class="row">
+                <div class="col-md-1">
+                    <input type="checkbox" />
+                </div>
+                <div class="col-md-11">
+                    FileName
+                </div>
 
-    </div>
-    <div class="col-md-2">
-        <h2>Controls</h2>
-        <p data-bind="text:$root.Selected"></p>
-        <!-- ko if: Selected() == "Server" -->
-        <div class="row">
-            <h5 class="col-md-4">Server:</h5><h5 class="col-md-8" data-bind="text:SelectedServer().ServerName"></h5>
-        </div>
-        <div class="row">
-            <p class="col-md-4">Apps: </p><p class="col-md-8" data-bind="text:Apps().length"></p>
-        </div>
-
-        <button data-bind="click: addAppEvent">Add</button>
+            </div>
+            <div style="max-height:78vh;height:78vh;overflow-y:auto;">
 
 
-        <!-- /ko -->
-        <!-- ko if: Selected() == "App"-->
-        <div class="row">
-            <h5 class="col-md-4">Server:</h5><h5 class="col-md-8" data-bind="text:SelectedServer().ServerName"></h5>
-        </div>
-        <div class="row">
-            <p class="col-md-4">App: </p><p class="col-md-8" data-bind="text:SelectedApp().AppName"></p>
-        </div>
-        <button>Delete</button>
-        <p>Versions: </p>
+                <!-- ko foreach: ProcessedFiles-->
+                <div class="row" data-bind="template: { name : 'fileTemplate' , data: $data}">
 
-        <button>Add</button>
-        <!-- /ko -->
-        <!-- ko if: Selected() == "Version"-->
-        <div class="row">
-            <h5 class="col-md-4">Server:</h5><h5 class="col-md-8" data-bind="text:SelectedServer().ServerName"></h5>
-        </div>
-        <div class="row">
-            <p class="col-md-4">App: </p><p class="col-md-8" data-bind="text:SelectedApp().AppName"></p>
-        </div>
-        <div class="row">
-            <p class="col-md-4">Version: </p><p class="col-md-8" data-bind="text:SelectedVersion().AppVersionName"></p>
-        </div>
+                </div>
 
-        <button>Delete</button>
+                <!-- /ko -->
+            </div>
+        </div>
+        <div class="col-md-2">
 
-        <!-- /ko -->
-        <!-- ko if: Selected() == "File"-->
-        <div class="row">
-            <h5 class="col-md-4">Server:</h5><h5 class="col-md-8" data-bind="text:SelectedServer().ServerName"></h5>
-        </div>
-        <div class="row">
-            <p class="col-md-4">App: </p><p class="col-md-8" data-bind="text:SelectedApp().AppName"></p>
-        </div>
-        <div class="row">
-            <p class="col-md-4">Version: </p><p class="col-md-8" data-bind="text:SelectedVersion().AppVersionName"></p>
-        </div>
-        <div class="row">
-            <p class="col-md-4">Name: </p>
-            <!--ko if: SelectedFile() != null-->
-            <p class="col-md-8" data-bind="text:SelectedFile().AppFileName"></p>
-            <!-- /ko-->
-            <!--ko if: SelectedFile() == null-->
-            <p class="col-md-8"></p>
+            <div>
+                <h2>Controls</h2>
+            </div>
+            <div>
+                <p data-bind="text:$root.Selected"></p>
+            </div>
+
+            <!-- ko if: Selected() == "Server" -->
+            <div>
+                <h5 class="col-md-4">Server:</h5><h5 class="col-md-8" data-bind="text:SelectedServer().ServerName"></h5>
+            </div>
+            <div>
+                <p class="col-md-4">Apps: </p><p class="col-md-8" data-bind="text:Apps().length"></p>
+            </div>
+
+            <div>
+                <h4>Add App</h4>
+
+                <div class="form-group">
+                    <label for="AAppserverName">Server Name:</label>
+                    <input type="text" data-bind="value: $root.FormAddApp().ServerName" name="AAppserverName" id="AAppserverName" class="form-control" readonly />
+                </div>
+                <div class="form-group">
+                    <label for="AAppappName">App Name:</label>
+                    <input type="text" data-bind="value: $root.FormAddApp().AppName" name="AAppappName" id="AAppappName" class="form-control" />
+                </div>
+                <input type="submit" data-bind="click: $root.FormAddApp().AddApp" />
+
+            </div>
             <!-- /ko -->
-        </div>
-        <div class="row">
-            <p class="col-md-4">IsFolder: </p>
-            <!--ko if: SelectedFile() != null-->
-            <p class="col-md-8" data-bind="text:SelectedFile().isFolder"></p>
-            <!-- /ko-->
-            <!--ko if: SelectedFile() == null-->
-            <p class="col-md-8"></p>
+            <!-- ko if: Selected() == "App"-->
+            <div>
+                <h5 class="col-md-4">Server:</h5><h5 class="col-md-8" data-bind="text:SelectedServer().ServerName"></h5>
+            </div>
+            <div>
+                <p class="col-md-4">App: </p><p class="col-md-8" data-bind="text:SelectedApp().AppName"></p>
+            </div>
+
+            <button data-bind="click: SelectedApp().DeleteApp">Delete</button>
+            <p>Versions: </p>
+            <div>
+                <h4>Add Version</h4>
+                <div class="form-group">
+                    <label for="AVerserverName">Server:</label>
+                    <input type="text" data-bind="value: $root.FormAddVersion().ServerName" name="AVerserverName" id="AVerserverName" class="form-control" readonly />
+                </div>
+                <div class="form-group">
+                    <label for="AVerappName">App:</label>
+                    <input type="text" data-bind="value: $root.FormAddVersion().AppName" name="AVerappName" id="AVerappName" class="form-control" readonly />
+                </div>
+                <div class="form-group">
+                    <label for="AVerappVersionName">Version:</label>
+                    <input type="text" data-bind="value: $root.FormAddVersion().AppVersionName" name="AVerappVersionName" id="AVerappVersionName" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label for="AVisMajorRevision">
+                        <input type="checkbox" data-bind="checked: $root.FormAddVersion().isMajorRevision" />
+                        is Major Revision
+                    </label>
+                </div>
+                <input type="submit" data-bind="click:$root.FormAddVersion().AddVersion" />
+
+            </div>
+            <button>Add</button>
             <!-- /ko -->
+            <!-- ko if: Selected() == "Version"-->
+
+            <div>
+                <h5 class="col-md-4">Server:</h5><h5 class="col-md-8" data-bind="text:SelectedServer().ServerName"></h5>
+            </div>
+            <div>
+                <p class="col-md-4">App: </p><p class="col-md-8" data-bind="text:SelectedApp().AppName"></p>
+            </div>
+            <div>
+                <p class="col-md-4">Version: </p><p class="col-md-8" data-bind="text:SelectedVersion().AppVersionName"></p>
+            </div>
+
+            <button data-bind="click: SelectedVersion().DeleteVersion">Delete</button>
+
+            <!-- /ko -->
+            <!-- ko if: Selected() == "File"-->
+            <div>
+                <p class="col-md-4">Server:</p><p class="col-md-8" data-bind="text:SelectedServer().ServerName"></p>
+            </div>
+            <div>
+                <p class="col-md-4">App: </p><p class="col-md-8" data-bind="text:SelectedApp().AppName"></p>
+            </div>
+            <div>
+                <p class="col-md-4">Version: </p><p class="col-md-8" data-bind="text:SelectedVersion().AppVersionName"></p>
+            </div>
+            <div>
+                <p class="col-md-4">Name: </p>
+                <!--ko if: SelectedFile() != null-->
+                <p class="col-md-8" data-bind="text:SelectedFile().AppFileName"></p>
+                <!-- /ko-->
+                <!--ko if: SelectedFile() == null-->
+                <p class="col-md-8"></p>
+                <!-- /ko -->
+            </div>
+            <div>
+                <p class="col-md-4">IsFolder: </p>
+                <!--ko if: SelectedFile() != null-->
+                <p class="col-md-8" data-bind="text:SelectedFile().isFolder"></p>
+                <!-- /ko-->
+                <!--ko if: SelectedFile() == null-->
+                <p class="col-md-8"></p>
+                <!-- /ko -->
+            </div>
+            <button>Delete</button>
+            <!-- ko if: SelectedFile() != null-->
+            <!-- ko if: SelectedFile().isFolder -->
+            <div>
+                <h4>Create New Directory</h4>
+                <div class="form-group">
+                    <label for="cndDirectoryName">Name</label>
+                    <input type="text" data-bind="value: $root.NewDirectory" id="cndDirectoryName" name="cndDirectoryName" />
+                </div>
+                <button data-bind="click: SelectedFile().CreateDirectory">Create</button>
+            </div>
+
+
+            <div>
+                <h4>Upload Files</h4>
+                <input type="file" multiple 
+                       data-bind="event: {change: SelectedFile().SelectFiles}" 
+                       
+                       
+                       />
+                <div>
+                    <div class="col-sm-4">
+                        <p>Name</p>
+                    </div>
+                    <div class="col-sm-4">
+                        <p>Size</p>
+                    </div>
+                    <div class="col-sm-4">
+                        <p>Actions</p>
+                    </div>
+                </div>
+                <div data-bind="foreach: $root.ForUploadFiles">
+                    <div class="col-sm-4">
+                        <p data-bind="text: name"></p>
+                    </div>
+                    <div class="col-sm-4">
+                        <p data-bind="text: size"></p>
+                    </div>
+                    <div class="col-sm-4">
+                        <button >remove</button>
+                    </div>
+                </div>
+                <button data-bind="click: SelectedFile().UploadFile">Upload</button>
+            </div>
+            <!-- /ko -->
+            <!-- /ko -->
+            <!-- /ko -->
+
+
+
         </div>
-        <button>Delete</button>
-        <!-- ko if: SelectedFile() != null-->
-        <!-- ko if: SelectedFile().isFolder -->
-
-        <button>Create New Directory</button>
-
-        <div class="row">
-            <h3>UploadFiles</h3>
-        </div>
-        <!-- /ko -->
-        <!-- /ko -->
-        <!-- /ko -->
-
     </div>
+
 </div>
+
+
 
 @section headerScripts
 {
@@ -158,13 +264,13 @@
     </script>
     <!--<script id="formTemplate" type="text/html">
         <form>-->
-            <!-- ko if : FormTemplate == "AddApp" -->
-                <!--<div class="form-group">
-                    <label for="serverName" />
-                    <input type="text" data-bind="value: FormAddApp().ServerName" readonly />
-                </div>-->
-            <!-- /ko -->
-        <!--</form>
+    <!-- ko if : FormTemplate == "AddApp" -->
+    <!--<div class="form-group">
+        <label for="serverName" />
+        <input type="text" data-bind="value: FormAddApp().ServerName" readonly />
+    </div>-->
+    <!-- /ko -->
+    <!--</form>
     </script>-->
     <script>
         var viewModel;
@@ -247,13 +353,7 @@
                         parent.Children.push(file);
                     }
                 }
-
             }
-
-
-
-
-
         }
 
         function GetFiles(ServerName, AppId, AppVersionId) {
@@ -264,17 +364,25 @@
                     statusCode: {
                         200: function (data) {
                             console.log(data);
-                            viewModel.AppFiles([]);
                             var processedText = data.responseText.replaceAll('""', '"');
                             var parsedData = JSON.parse(processedText);
                             parsedData = JSON.parse(parsedData);
-                            for (var i = 0; i < parsedData.length; i++) {
-                                var instance = parsedData[i];
-                                viewModel.AppFiles.push(new AppFile(instance.AppFileId, instance.AppVersionId, instance.AppFileName, instance.AppFileSize, instance.AppFileExt, instance.isFolder, instance.parentFolder, instance.LastWriteTime));
+                            var processedData = JSON.parse(parsedData.Data);
+                            if (parsedData.Status == "Ok!") {
+                                viewModel.AppFiles([]);
+
+                                for (var i = 0; i < processedData.length; i++) {
+                                    var instance = processedData[i];
+                                    viewModel.AppFiles.push(new AppFile(instance.AppFileId, instance.AppVersionId, instance.AppFileName, instance.AppFileSize, instance.AppFileExt, instance.isFolder, instance.parentFolder, instance.LastWriteTime));
+                                }
+                                viewModel.ProcessedFiles([]);
+                                viewModel.ProcessedFiles.push(new AppFile(0, viewModel.SelectedVersion().AppVersionId(), viewModel.SelectedVersion().AppVersionName(), "0", "", true, 0, ""));
+                                ProcessFiles(0);
                             }
-                            viewModel.ProcessedFiles([]);
-                            viewModel.ProcessedFiles.push(new AppFile(0, viewModel.SelectedVersion().AppVersionId(), viewModel.SelectedVersion().AppVersionName(), "0", "", true, 0, ""));
-                            ProcessFiles(0);
+                            else {
+                                alertify.notify(parsedData.Data);
+                            }
+
                         }
                     }
                 });
@@ -288,17 +396,25 @@
                     statusCode: {
                         200: function (data) {
                             console.log(data);
-                            viewModel.Versions([]);
-                            viewModel.SelectedVersion = ko.observable();
-                            viewModel.AppFiles([]);
-                            viewModel.ProcessedFiles([]);
                             var processedText = data.responseText.replaceAll('""', '"');
                             var parsedData = JSON.parse(processedText);
                             parsedData = JSON.parse(parsedData);
-                            for (var i = 0; i < parsedData.length; i++) {
-                                var instance = parsedData[i];
-                                viewModel.Versions.push(new Version(instance.AppVersionId, instance.AppId, instance.AppVersionName, instance.isMajorRevision, instance.Date));
+                            var processedData = JSON.parse(parsedData.Data);
+                            if (parsedData.Status == "Ok!") {
+                                viewModel.Versions([]);
+                                viewModel.SelectedVersion = ko.observable();
+                                viewModel.AppFiles([]);
+                                viewModel.ProcessedFiles([]);
+
+                                for (var i = 0; i < processedData.length; i++) {
+                                    var instance = processedData[i];
+                                    viewModel.Versions.push(new Version(instance.AppVersionId, instance.AppId, instance.AppVersionName, instance.isMajorRevision, instance.Date));
+                                }
                             }
+                            else {
+                                alertify.notify(parsedData.Data);
+                            }
+
 
                         }
                     }
@@ -314,20 +430,29 @@
                     statusCode: {
                         200: function (data) {
                             console.log(data);
-                            viewModel.Apps([]);
-                            viewModel.SelectedApp = ko.observable();
-                            viewModel.Versions([]);
-                            viewModel.SelectedVersion = ko.observable();
-                            viewModel.AppFiles([]);
-                            viewModel.ProcessedFiles([]);
-                            //viewModel.SelectedFiles =
                             var processedText = data.responseText.replaceAll('""', '"');
                             var parsedData = JSON.parse(processedText);
                             parsedData = JSON.parse(parsedData);
-                            for (var i = 0; i < parsedData.length; i++) {
-                                var instance = parsedData[i]
-                                viewModel.Apps.push(new App(instance.AppId, instance.AppName));
+                            var processedData = JSON.parse(parsedData.Data);
+                            if (parsedData.Status == "Ok!") {
+                                viewModel.Apps([]);
+                                viewModel.SelectedApp = ko.observable();
+                                viewModel.Versions([]);
+                                viewModel.SelectedVersion = ko.observable();
+                                viewModel.AppFiles([]);
+                                viewModel.ProcessedFiles([]);
+                                //viewModel.SelectedFiles =
+
+
+                                for (var i = 0; i < processedData.length; i++) {
+                                    var instance = processedData[i]
+                                    viewModel.Apps.push(new App(instance.AppId, instance.AppName));
+                                }
                             }
+                            else {
+                                alertify.notify(parsedData.Data);
+                            }
+
                         }
                     }
                 });
@@ -345,10 +470,17 @@
                             var processedText = data.responseText.replaceAll('""', '"');
                             var parsedData = JSON.parse(processedText);
                             parsedData = JSON.parse(parsedData);
-                            for (var i = 0; i < parsedData.length; i++) {
-                                var instance = parsedData[i];
-                                viewModel.Servers.push(new Server(instance.IPAddress, instance.ServerName));
+                            var processedData = JSON.parse(parsedData.Data);
+                            if (parsedData.Status == "Ok!") {
+                                for (var i = 0; i < processedData.length; i++) {
+                                    var instance = processedData[i];
+                                    viewModel.Servers.push(new Server(instance.IPAddress, instance.ServerName));
+                                }
                             }
+                            else {
+                                alertify.notify(parsedData.Data);
+                            }
+
                         }
                     }
                 });
@@ -358,6 +490,94 @@
             var self = this;
             self.ServerName = ko.observable(ServerName);
             self.AppName = ko.observable(AppName)
+            self.AddApp = function () {
+
+                var match = viewModel.Apps().length == 0 ? ko.observableArray([]) : ko.utils.arrayFilter(viewModel.Apps(), function (aa) {
+                    return aa.AppName() == self.AppName();
+                });
+                if (match.length > 0) {
+                    alertify.error("App already exists");
+                    self.AppName('');
+                }
+                else {
+                    alertify.confirm('Create App', "Are you sure you want to create this app?",
+                        function () {
+                            $.ajax(createAppsUrl + "/" + self.ServerName() + "/" + self.AppName(),
+                                {
+                                    method: "GET",
+                                    dataType: "application/json",
+                                    statusCode:
+                                    {
+                                        200: function (data) {
+                                            console.log(data);
+                                            var processedText = data.responseText.replaceAll('""', '"');
+                                            var parsedData = JSON.parse(processedText);
+                                            parsedData = JSON.parse(parsedData);
+                                            //var processedData = JSON.parse(parsedData.Data);
+                                            if (parsedData.Status == "Ok!") {
+                                                alertify.success("New Application Created! : " + self.AppName());
+                                                GetApps(viewModel.SelectedServer().ServerName())
+                                            }
+                                            else {
+                                                alertify.error(parsedData);
+                                            }
+                                        }
+                                    }
+                                });
+                        },
+                        function () {
+                            alertify.error("App creation cancelled!")
+                        }
+                    )
+
+                }
+
+            }
+        }
+
+        function FormAddVersion(ServerName, AppName, AppVersionName, isMajorRevision) {
+            var self = this;
+            self.ServerName = ko.observable(ServerName);
+            self.AppName = ko.observable(AppName);
+            self.AppVersionName = ko.observable(AppVersionName);
+            self.isMajorRevision = ko.observable(isMajorRevision)
+            self.AddVersion = function () {
+                var match = viewModel.Versions().length == 0 ? ko.observable([]) :  ko.util.arrayFilter(viewModel.Versions(), function (av) {
+                    return av.AppVersionName() == self.AppVersionName();
+                });
+                if (match.length > 0) {
+                    alertify.error("Version already exists!");
+                }
+                else {
+                    alertify.confirm("Add Version", "Are you sure you want to add this version? " + self.AppVersionName(),
+                        function () {
+                            $.ajax(createAppVersionUrl + "/" + self.ServerName() + "/" + self.AppName() + "/" + self.AppVersionName() + "/" + self.isMajorRevision(),
+                                {
+                                    method: "GET",
+                                    dataType: "application/json",
+                                    statusCode: {
+                                        200: function (data) {
+                                            console.log(data);
+                                            var processedText = data.responseText.replaceAll('""', '"');
+                                            var parsedData = JSON.parse(processedText);
+                                            parsedData = JSON.parse(parsedData);
+                                            if (parsedData.Status == "Ok!") {
+                                                alertify.success("New version created! " + self.AppVersionName());
+                                                GetVersions(self.ServerName(), viewModel.SelectedApp().AppId());
+                                            }
+                                            else {
+                                                alertify.error(parsedData.Data);
+                                            }
+                                        }
+                                    }
+
+                                })
+                        },
+                        function () {
+                            alertify.error("Add Version cancelled!");
+                        });
+                }
+            }
         }
 
         function AppFile(AppFileId, AppVersionId, AppFileName, AppFileSize, AppFileExt, isFolder, parentFolder, LastWriteTime) {
@@ -384,10 +604,67 @@
                 }
 
             }
+            self.CreateDirectory = function () {
+                var match = self.Children.length == 0 ? ko.observable([]) : ko.utils.arrayFilter(self.Children(), function (cd) {
+                    return cd.AppFileName() == viewModel.NewDirectory() && cd.isFolder() == true;
+                });
+                if (match.length == 0) {
+                    alertify.confirm("Create Directory", "Are you sure you want to Create Directory? " + viewModel.NewDirectory(),
+                        function () {
+                            $.ajax(createDirectoryUrl + "/" + viewModel.SelectedServer().ServerName() + "/" + viewModel.SelectedApp().AppId() + "/" + viewModel.SelectedVersion().AppVersionId() + "/" + viewModel.SelectedFile().AppFileId()+"/"+viewModel.NewDirectory(),
+                                {
+                                    method: "GET",
+                                    dataType: "application/json",
+                                    statusCode: {
+                                        200: function (data) {
+                                            console.log(data);
+                                            var processedText = data.responseText.replaceAll('""', '"');
+                                            var parsedData = JSON.parse(processedText);
+                                            parsedData = JSON.parse(parsedData);
+                                            if (parsedData.Status == "Ok!") {
+                                                alertify.success("Creating directory success!" + self.AppFileName());
+                                                viewModel.SelectedVersion().SelectVersion();
+
+                                            }
+                                            else {
+                                                alertify.error(parsedData.Data);
+                                            }
+                                        }
+                                    }
+
+                                });
+                        },
+                        function () {
+                            alertify.error("Create Directory cancelled!");
+                        });
+                 
+                }
+                else {
+                    alertify.error("Directory already exists")
+                }
+                
+            }
             self.Children = ko.observableArray();
             self.fileClass = ko.computed(function () {
                 return self.isFolder() ? "col-md-2 fas fa-folder " : "col-md-2 fa fa-file ";
-            })
+            });
+            self.SelectFiles = function (element, event) {
+                //console.log('element: ');
+                //console.log(element);
+                //console.log('event: ');
+                //console.log(event);
+                if (event.target.files.length > 0) {
+                    viewModel.ForUploadFiles([]);
+                    for (var i = 0; i < event.target.files.length; i++) {
+                        var file = event.target.files[i];
+                        viewModel.ForUploadFiles.push(file);
+                    }
+                }
+            }
+
+            self.UploadFile = function () {
+
+            }
         }
 
         function Version(AppVersionId, AppId, AppVersionName, isMajorRevision, Date) {
@@ -402,6 +679,39 @@
                 GetFiles(viewModel.SelectedServer().ServerName(), viewModel.SelectedApp().AppId(), self.AppVersionId());
                 viewModel.Selected("Version");
             }
+            self.DeleteVersion = function () {
+                alertify.confirm("Delete Version", "Are you sure you want to delete this version? " + self.AppVersionName(),
+                    function () {
+                        $.ajax(deleteAppVersionUrl + "/" + viewModel.SelectedServer().ServerName() + "/" + viewModel.SelectedApp().AppName() + "/" + self.AppVersionId(),
+                            {
+                                method: "GET",
+                                dataType: "application/json",
+                                statusCode: {
+                                    200: function (data) {
+                                        console.log(data);
+                                        var processedText = data.responseText.replaceAll('""', '"');
+                                        var parsedData = JSON.parse(processedText);
+                                        parsedData = JSON.parse(parsedData);
+                                        if (parsedData.Status == "Ok!") {
+                                            alertify.success("Delete Version success! " + self.AppVersionName());
+                                            viewModel.SelectedApp().SelectApp();
+                                            //GetVersions(viewModel.SelectedServer().ServerName(), viewModel.SelectedApp().AppId());
+                                        }
+                                        else {
+                                            alertify.error(parsedData.Data);
+                                        }
+
+
+                                    }
+                                }
+
+                            });
+                    },
+                    function () {
+                        alertify.error("Delete version cancelled!");
+                    })
+            }
+
 
         }
 
@@ -414,8 +724,43 @@
             self.SelectApp = function () {
                 viewModel.SelectedApp(self);
                 GetVersions(viewModel.SelectedServer().ServerName(), self.AppId());
+                viewModel.FormAddVersion(new FormAddVersion(viewModel.SelectedServer().ServerName(), self.AppName(),"",false));
                 viewModel.Selected("App");
             }
+            self.DeleteApp = function () {
+                alertify.confirm("Delete app", "Are you sure you want to delete this app? " + viewModel.SelectedApp().AppName(),
+                    function () {
+                        $.ajax(deleteAppsUrl + "/" + viewModel.SelectedServer().ServerName() + "/" + viewModel.SelectedApp().AppName(),
+                            {
+                                method: "GET",
+                                dataType: "application/json",
+                                statusCode: {
+                                    200: function (data) {
+                                        console.log(data);
+                                        var processedText = data.responseText.replaceAll('""', '"');
+                                        var parsedData = JSON.parse(processedText);
+                                        parsedData = JSON.parse(parsedData);
+                                        //var processedData = JSON.parse(parsedData.Data);
+
+                                        if (parsedData.Status == "Ok!") {
+                                            alertify.success("Application Deleted! : " + self.AppName());
+                                            viewModel.SelectedServer().SelectServer();
+                                            //GetApps(viewModel.SelectedServer().ServerName());
+                                        }
+                                        else {
+                                            alertify.error(parsedData);
+                                        }
+                                    }
+                                }
+                            });
+                    },
+                    function () {
+                        alertify.error("App deletion cancelled!");
+                    });
+
+
+            }
+
         }
 
         function Server(IPAddress, ServerName) {
@@ -425,8 +770,12 @@
             self.SelectServer = function () {
                 viewModel.SelectedServer(self);
                 GetApps(self.ServerName());
+                viewModel.FormAddApp(new FormAddApp(self.ServerName(), ""));
                 viewModel.Selected("Server");
+
+
             }
+
         }
 
         function ViewModel() {
@@ -446,41 +795,12 @@
 
             self.FormTemplate = ko.observable();
             self.FormAddApp = ko.observable();
-            self.addAppEvent = function () {
-                self.FormTemplate("AddApp");
-                self.FormAddApp(new FormAddApp(self.SelectedServer().ServerName, ""));
-                //alertify.addForms("<!-- ko template: { name: 'formTemplate' } --> <!-- /ko -->");
-                var s =
-                    '<form>'+
-                    '<div class="form-group">' +
-                    '<label for="serverName" >Server: </label>' +
-                    '<input type="text" data-bind="value: FormAddApp().ServerName,text: FormAddApp().ServerName" />' +
-                    '</div>' +
-                    '</form>';
-                alertify.testAlert(s);
-            }
+            self.FormAddVersion = ko.observable();
+            self.NewDirectory = ko.observable();
 
-           
-            //alertify.dialog('addForms', function factory() {
-            //    return {
-            //        build: function () {
-            //            //setHeaderorstuffhere
-            //            var header = '<h2>Header</h2>';
-            //            this.setHeader(header);
-            //            this.setContent("<div>LOL</div>")
-            //        }
-            //    }, true, 'alert'
-            //});
-            alertify.dialog('testAlert', function factory() {
-                return {
-                    build: function () {
-                        var errorHeader = '<span class="fa fa-times-circle fa-2x" '
-                            + 'style="vertical-align:middle;color:#e10000;">'
-                            + '</span> Application Error';
-                        this.setHeader(errorHeader);
-                    }
-                };
-            }, true, 'alert');
+            self.ForUploadFiles = ko.observableArray();
+
+
             GetServers();
         }
 
