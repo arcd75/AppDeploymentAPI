@@ -84,7 +84,13 @@
             <div>
                 <p data-bind="text:$root.Selected"></p>
             </div>
-
+            <div>
+                <h4>Multi-Selected Files</h4>
+                <p data-bind="text: $root.MultiSelectFilesText"></p>
+            </div>
+            <div>
+                <button data-bind="click: $root.DeleteMultiSelectFiles">Delete Selected</button>
+            </div>
             <!-- ko if: Selected() == "Server" -->
             <div>
                 <h5 class="col-md-4">Server:</h5><h5 class="col-md-8" data-bind="text:SelectedServer().ServerName"></h5>
@@ -201,11 +207,7 @@
 
             <div>
                 <h4>Upload Files</h4>
-                <input type="file" multiple 
-                       data-bind="event: {change: SelectedFile().SelectFiles}" 
-                       
-                       
-                       />
+                <button data-bind="click: SelectedFile().SelectFiles">Upload Files...</button>
                 <div>
                     <div class="col-sm-4">
                         <p>Name</p>
@@ -217,16 +219,19 @@
                         <p>Actions</p>
                     </div>
                 </div>
-                <div data-bind="foreach: $root.ForUploadFiles">
-                    <div class="col-sm-4">
-                        <p data-bind="text: name"></p>
+                <div data-bind="foreach: $root.ForUploadFilesVM">
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <p data-bind="text: FileName"></p>
+                        </div>
+                        <div class="col-sm-4">
+                            <p data-bind="text: FileSize"></p>
+                        </div>
+                        <div class="col-sm-4">
+                            <button data-bind="click:Delete">remove</button>
+                        </div>
                     </div>
-                    <div class="col-sm-4">
-                        <p data-bind="text: size"></p>
-                    </div>
-                    <div class="col-sm-4">
-                        <button >remove</button>
-                    </div>
+                    
                 </div>
                 <button data-bind="click: SelectedFile().UploadFile">Upload</button>
             </div>
@@ -580,6 +585,18 @@
             }
         }
 
+        function InputFile(FileName,FileSize,File,EventTarget) {
+            var self = this;
+            self.FileName = ko.observable(FileName);
+            self.FileSize = ko.observable(FileSize);
+            self.File = ko.observable(File);
+            self.EventTarget = ko.observable(EventTarget);
+            self.Delete = function () {
+                console.log(self.EventTarget().files);
+                viewModel.ForUploadFilesVM.remove(self);
+            }
+        }
+
         function AppFile(AppFileId, AppVersionId, AppFileName, AppFileSize, AppFileExt, isFolder, parentFolder, LastWriteTime) {
             var self = this;
             self.AppFileId = ko.observable(AppFileId);
@@ -648,22 +665,59 @@
             self.fileClass = ko.computed(function () {
                 return self.isFolder() ? "col-md-2 fas fa-folder " : "col-md-2 fa fa-file ";
             });
-            self.SelectFiles = function (element, event) {
-                //console.log('element: ');
-                //console.log(element);
-                //console.log('event: ');
-                //console.log(event);
-                if (event.target.files.length > 0) {
-                    viewModel.ForUploadFiles([]);
-                    for (var i = 0; i < event.target.files.length; i++) {
-                        var file = event.target.files[i];
-                        viewModel.ForUploadFiles.push(file);
+            self.SelectFiles = function (elem, event) {
+                event.preventDefault();
+                var fileInput = document.createElement('input');
+                fileInput.setAttribute('type', 'file');
+                fileInput.setAttribute('multiple','');
+                fileInput.click();
+                fileInput.addEventListener("change", function (nEvent) {
+
+                    if (nEvent.target.files.length > 0) {
+                        //viewModel.ForUploadFiles([]);
+                        //viewModel.ForUploadFilesVM([]);
+                        for (var i = 0; i < nEvent.target.files.length; i++) {
+                            var file = nEvent.target.files[i];
+                            //viewModel.ForUploadFiles.push(file);
+                            viewModel.ForUploadFilesVM.push(new InputFile(file.name, file.size, file, event.target));
+                            //viewModel.ForUploadFiles.push
+                        }
                     }
-                }
+                })
+              
             }
 
             self.UploadFile = function () {
-
+                var fd = new FormData();
+                for (var i = 0; i < viewModel.ForUploadFilesVM().length; i++) {
+                    var file = viewModel.ForUploadFilesVM()[i];
+                    fd.append(file.FileName, file.File());
+                }
+                var url = uploadFileUrl + "/" + viewModel.SelectedServer().ServerName() + "/" + viewModel.SelectedApp().AppId() + "/" + viewModel.SelectedVersion().AppVersionId() + "/" + viewModel.SelectedFile().AppFileId();
+                $.ajax(url,
+                    {
+                        data: fd,
+                        method: "POST",
+                        dataType: false,
+                        contentType: false ,
+                        processData: false,
+                        statusCode: {
+                            200: function (data) {
+                                console.log(data);
+                                //var processedText = data.responseText.replaceAll('""', '"');
+                                //var parsedData = JSON.parse(processedText);
+                                var parsedData = JSON.parse(data);
+                                if (parsedData.Status == "Ok!") {
+                                    viewModel.ForUploadFilesVM([]);
+                                    alertify.success("Upload Complete! " + parsedData.Data);
+                                    viewModel.SelectedVersion().SelectVersion();
+                                }
+                                else {
+                                    alertify.error(parsedData.Data);
+                                }
+                            }
+                        }
+                    });
             }
         }
 
@@ -772,8 +826,6 @@
                 GetApps(self.ServerName());
                 viewModel.FormAddApp(new FormAddApp(self.ServerName(), ""));
                 viewModel.Selected("Server");
-
-
             }
 
         }
@@ -798,8 +850,48 @@
             self.FormAddVersion = ko.observable();
             self.NewDirectory = ko.observable();
 
-            self.ForUploadFiles = ko.observableArray();
+            
+            self.ForUploadFilesVM = ko.observableArray();
 
+            self.MultiSelectFilesText = ko.computed(function () {
+                return "You have selected " + self.SelectedFiles().length + " file" + (self.SelectedFiles().length > 1 ? "s" : "");
+            });
+
+            self.DeleteMultiSelectFiles = function () {
+                alertify.confirm("Delete Multi-Selected Files", "Are you sure you want to delete the files?",
+                    function () {
+                        var ids = [];
+                        for (var i = 0; i < self.SelectedFiles().length; i++) {
+                            ids.push(self.SelectedFiles()[i].AppFileId());
+                        }
+                        $.ajax(deleteMultiSelectUrl + "/" + viewModel.SelectedServer().ServerName(),
+                            {
+                                method: "POST",
+                                data: JSON.stringify(ids),
+                                dataType: 'application/json',
+
+                                statusCode: {
+                                    200: function (data) {
+                                        console.log(data);
+                                        var processedText = data.responseText.replaceAll('""', '"');
+                                        var parsedData = JSON.parse(processedText);
+                                        parsedData = JSON.parse(parsedData);
+                                        if (parsedData.Status == "Ok!") {
+                                            alertify.success(parsedData.Data);
+                                            viewModel.SelectedVersion().SelectVersion();
+                                            self.SelectedFiles([]);
+                                        }
+                                        else {
+                                            alertify.error(parsedData.Data);
+                                        }
+                                    }
+                                }
+                            });
+                    },
+                    function () {
+                        alertify.error("Deletion cancelled!");
+                    });
+            }
 
             GetServers();
         }

@@ -8,6 +8,61 @@ using System.Web;
 
 namespace SPWSAppDeploymentAPINETFX.Models
 {
+
+
+    public class ClientProfile
+    {
+        [Key]
+        public int ClientProfileId { get; set; }
+
+        public string AssetTag { get; set; }
+        public static List<ClientProfile> local;
+
+        public static async Task ReloadLocal()
+        {
+            await Task.Factory.StartNew(() =>
+            {
+                using (var adc = new ADContext())
+                {
+                    ClientProfile.local = adc.Database.SqlQuery<ClientProfile>($"SELECT * FROM dbo.ClientProfiles").ToList();
+                }
+            });
+        }
+    }
+
+    public class ClientProfileDetail
+    {
+        [Key]
+        public int ClientProfileDetailId { get; set; }
+        
+        public int ClientProfileId { get; set; }
+        public string ColumnName { get; set; }
+        public string DataType { get; set; }
+        public string Value { get; set; }
+        public static List<ClientProfileDetail> local;
+        public static async Task ReloadLocal()
+        {
+            await Task.Factory.StartNew(() =>
+            {
+                using (var adc = new ADContext())
+                {
+                    ClientProfileDetail.local = adc.Database.SqlQuery<ClientProfileDetail>($"SELECT * FROM dbo.ClientProfileDetails").ToList();
+                }
+            });
+        }
+
+    }
+
+    public class RequestFP
+    {
+        public RequestFP()
+        {
+            this.FPID = local.Count() + 1;
+        }
+        public int FPID { get; set; }
+        public int ClientProfileId { get; set; }
+        public static List<RequestFP> local;
+    }
     public class SystemInstallationRecord
     {
         [Key]
@@ -18,6 +73,7 @@ namespace SPWSAppDeploymentAPINETFX.Models
         public string Version { get; set; }
         public string IPAddress { get; set; }
         public DateTime LastUpdated { get; set; }
+        public int ClientProfileId { get; set; }
         public static List<SystemInstallationRecord> local;
         public static Task ReloadLocal()
         {
@@ -127,12 +183,16 @@ namespace SPWSAppDeploymentAPINETFX.Models
         public DbSet<SystemInstallationRecord> SystemInstallationRecords { get; set; }
         public DbSet<ServerProfile> ServerProfiles { get; set; }
         public DbSet<ADUser> ADUsers { get; set; }
+        public DbSet<ClientProfile> ClientProfiles { get; set; }
+        public DbSet<ClientProfileDetail> ClientProfileDetails { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             modelBuilder.Entity<SystemInstallationRecord>().ToTable("SystemInstallationRecords");
             modelBuilder.Entity<ServerProfile>().ToTable("ServerProfiles");
             modelBuilder.Entity<ADUser>().ToTable("Users");
+            modelBuilder.Entity<ClientProfile>().ToTable("ClientProfiles");
+            modelBuilder.Entity<ClientProfileDetail>().ToTable("ClientProfileDetails");
         }
         public void InitializeDatabase(ADContext context)
         {

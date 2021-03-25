@@ -97,6 +97,7 @@ namespace SPWSAppDeploymentAPINETFX.Hubs
             public string ConnectionId { get; set; }
             public string HostName { get; set; }
             public string IPAddress { get; set; }
+            public int ClientProfileId { get; set; }
         }
 
         public enum ServerRequestStatus

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Threading.Tasks;
 using System.Web.Http;
 
 namespace SPWSAppDeploymentAPINETFX.Controllers
@@ -375,7 +376,7 @@ namespace SPWSAppDeploymentAPINETFX.Controllers
 
         [Route("Apps/UploadFiles/{ServerName}/{AppId}/{AppVersionId}/{AppFileId}")]
         [HttpPost]
-        public string UploadFiles(string ServerName,int AppId,int AppVersionId,int AppFileId)
+        public async Task<string> UploadFiles(string ServerName,int AppId,int AppVersionId,int AppFileId)
         {
             string result = "";
             AppJsonResponse response = new AppJsonResponse();
@@ -390,11 +391,48 @@ namespace SPWSAppDeploymentAPINETFX.Controllers
                 {
                     IPAddress = "172.17.147.71";
                 }
-
+                var currentDirectory = AppDomain.CurrentDomain.BaseDirectory;
+                var uploadPathDirectory = System.IO.Path.Combine(currentDirectory, "UploadFiles");
+                if (!System.IO.Directory.Exists(uploadPathDirectory))
+                {
+                    System.IO.Directory.CreateDirectory(uploadPathDirectory);
+                }
+                //string rootpath = System.Web.HttpContext.Current.Server.MapPath("~/UploadFiles");
+                var provider = new MultipartFileStreamProvider(uploadPathDirectory);
                 var si = ServerInstance.serverInstances.FirstOrDefault(s => s.IPAddress == IPAddress);
                 var app = si.lApps.FirstOrDefault(a => a.AppId == AppId);
                 var appVersion = si.lAppVersion.FirstOrDefault(av => av.AppId == AppId && av.AppVersionId == AppVersionId);
                 var parentFolder = si.lAppFiles.FirstOrDefault(af => af.AppFileId == AppFileId);
+                var mp = await Request.Content.ReadAsMultipartAsync(provider);
+                si.Database.BeginTransaction();
+                foreach (var file in mp.FileData)
+                {
+      
+                    byte[] data = System.IO.File.ReadAllBytes(file.LocalFileName);
+                    AppFile newFile = new AppFile()
+                    {
+                        AppFileName = file.Headers.ContentDisposition.FileName.Replace("\"",""),
+                        AppFileSize = data.Length.ToString(),
+                        AppFileExt = file.Headers.ContentDisposition.FileName.Split('.').Last(),
+                        isFolder = false,
+                        LastWriteTime = DateTime.Now,
+                        parentFolder = AppFileId,
+                        AppVersionId = AppVersionId
+                    };
+                    newFile = si.AppFiles.Add(newFile);
+                    si.SaveChanges();
+                    si.AppFileBlobs.Add(new AppFileBlob()
+                    {
+                        AppFileId = newFile.AppFileId,
+                        FileBlob = data,
+                    });
+                    si.SaveChanges();
+                   
+                }
+                si.Database.CurrentTransaction.Commit();
+                si.lAppFiles = si.Database.SqlQuery<AppFile>("SELECT * FROM dbo.AppFiles").ToList();
+                response.Status = "Ok!";
+                response.Data = mp.FileData.Count() + " file(s) uploaded successfully";
             }
             catch (Exception ex)
             {
@@ -402,7 +440,46 @@ namespace SPWSAppDeploymentAPINETFX.Controllers
                 response.Data = ex.ToString();
                 //throw;
             }
-
+            result = Newtonsoft.Json.JsonConvert.SerializeObject(response);
+            return result;
+        }
+        [Route("Apps/DeleteMultiSelect/{ServerName}")]
+        [HttpPost]
+        public async Task<string> DeleteMultiSelect(string ServerName)
+        {
+            string result = "";
+            AppJsonResponse response = new AppJsonResponse();
+            try
+            {
+                var reqString = await Request.Content.ReadAsStringAsync();
+                int[] ids = Newtonsoft.Json.JsonConvert.DeserializeObject<int[]>(reqString);
+                string IPAddress = "";
+                if (ServerName == "DevServer")
+                {
+                    IPAddress = "172.17.147.86";
+                }
+                else if (ServerName == "ACSServer")
+                {
+                    IPAddress = "172.17.147.71";
+                }
+                var si = ServerInstance.serverInstances.FirstOrDefault(s => s.IPAddress == IPAddress);
+                si.Database.BeginTransaction();
+                si.AppFiles.RemoveRange(si.AppFiles.Where(af => ids.Contains(af.AppFileId)));
+                si.AppFileBlobs.RemoveRange(si.AppFileBlobs.Where(afb => ids.Contains(afb.AppFileId)));
+                si.SaveChanges();
+                si.Database.CurrentTransaction.Commit();
+                si.lAppFiles = si.Database.SqlQuery<AppFile>("SELECT * FROM dbo.AppFiles").ToList();
+                response.Status = "Ok!";
+                response.Data = ids.Count() + " file" + (ids.Count() > 1 ? "s" : "") + " successfully deleted!";
+                
+            }
+            catch (Exception ex)
+            {
+                response.Status = "Exception!";
+                response.Data = ex.ToString();
+                //throw;
+            }
+            result = Newtonsoft.Json.JsonConvert.SerializeObject(response);
             return result;
         }
 
