@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Threading.Tasks;
 using System.Web.Http;
 
 namespace SPWSAppDeploymentAPINETFX.Controllers
@@ -85,37 +86,62 @@ namespace SPWSAppDeploymentAPINETFX.Controllers
             return Newtonsoft.Json.JsonConvert.SerializeObject(new AppsController.AppJsonResponse() { Status = Status, Data = result});
         }
 
-        [Route("ClientProfile/AddProperty/{ClientProfileId}/{Property}/{Value}")]
-        [HttpGet]
-        public string AddProperty(int ClientProfileId,string Property,string Value)
+        [Route("ClientProfile/SendUpdate/{ClientProfileId}")]
+        [HttpPost]
+        public async Task<string> SendUpdate(int ClientProfileId)
         {
             string result = "";
             string Status = "";
             try
             {
-                switch (Property)
+                using (var adc = new ADContext())
                 {
-                    case "HostName":
+                    adc.Database.BeginTransaction();
+                    var requestString = await Request.Content.ReadAsStringAsync();
+                    var reqData = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ClientProfileDetail>>(requestString);
+                    if (reqData.Exists(cpd => cpd.ColumnName == "HostName"))
+                    {
+                        var hostNameDetail = reqData.FirstOrDefault(cpd => cpd.ColumnName == "HostName");
+                        var clientProfileDetail = new ClientProfileDetail();
+                        var instance = ClientProfileDetail.local.FirstOrDefault(cpd => cpd.ClientProfileId == ClientProfileId && cpd.ColumnName == "HostName");
+                        if (instance == null)
                         {
                             
+                            adc.ClientProfileDetails.Add(hostNameDetail);
                         }
-                        break;
-                    case "IPAddress":
+                        else
                         {
-
+                            instance = adc.ClientProfileDetails.Find(instance.ClientProfileDetailId);
+                            instance.Value = hostNameDetail.Value;
                         }
-                        break;
-                        
+                    }
+                    if (reqData.Exists(cpd => cpd.ColumnName == "IPAddress"))
+                    {
+                        var IPAddressData = reqData.Where(cpd => cpd.ColumnName == "IPAddress").ToList();
+                        var ExistingIPAddressData = ClientProfileDetail.local.Where(cpd => cpd.ClientProfileId == ClientProfileId && cpd.ColumnName == "IPAddress").ToList();
+                        // GET Records that matches in the DB and retain
+                        var RetainedIPAddresses = ExistingIPAddressData.Where(cpd => IPAddressData.Select(ipd => ipd.Value).ToArray().Contains(cpd.Value)).ToList();
+                        // Remove IP Addresses that Didnt match retained IP
+                        adc.ClientProfileDetails.RemoveRange(adc.ClientProfileDetails.Where(cpd => cpd.ColumnName == "IPAddress" && cpd.ClientProfileId == ClientProfileId && !RetainedIPAddresses.Select(ripa => ripa.Value).ToArray().Contains(cpd.Value)));
+                        // Add New records that didnt exist in the existing ip address but existing in the request
+                        var NewIPAdressData = IPAddressData.Where(ipd => !RetainedIPAddresses.Select(cpd => cpd.Value).ToArray().Contains(ipd.Value));
+                        foreach (var item in NewIPAdressData)
+                        {
+                            adc.ClientProfileDetails.Add(item);
+                        }
+                    }
+                  
+                   
+                    adc.SaveChanges();
+                    adc.Database.CurrentTransaction.Commit();
 
-                    default:
-                        break;
-                        break;
                 }
+                Status = "Ok!";
             }
             catch (Exception ex)
             {
-
-
+                result = ex.ToString();
+                Status = "Exception!";
                 //throw;
             }
 

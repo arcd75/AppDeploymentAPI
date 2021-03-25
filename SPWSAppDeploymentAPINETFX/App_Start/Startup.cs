@@ -1,4 +1,5 @@
-﻿using Owin;
+﻿using Microsoft.AspNet.SignalR;
+using Owin;
 using SPWSAppDeploymentAPINETFX.Hubs;
 using SPWSAppDeploymentAPINETFX.Models;
 using System;
@@ -17,6 +18,9 @@ namespace SPWSAppDeploymentAPINETFX
 
         public async void LoadLocals()
         {
+            GlobalHost.Configuration.ConnectionTimeout = TimeSpan.FromSeconds(60);
+            GlobalHost.Configuration.DisconnectTimeout = TimeSpan.FromSeconds(6);
+            GlobalHost.Configuration.KeepAlive = TimeSpan.FromSeconds(2);
             ADHub.wClients = new List<ADHub.SClient>();
             ADHub.sClients = new List<ADHub.SClient>();
             ADHub.sRequest = new List<ADHub.ServerRequest>();

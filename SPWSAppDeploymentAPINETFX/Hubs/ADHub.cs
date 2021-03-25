@@ -14,24 +14,28 @@ namespace SPWSAppDeploymentAPINETFX.Hubs
         public static List<ServerRequest> sRequest;
         
         
-        public void Join(string HostName,string IPAddress)
+        public void Join(int ClientProfileId)
         {
             if (sClients == null)
             {
                 sClients = new List<SClient>();
             }
-            if (sClients.Exists(sc => sc.HostName == HostName))
+            if (sClients.Exists(sc => sc.ClientProfileId == ClientProfileId))
             {
-                var client = sClients.FirstOrDefault(sc => sc.HostName == HostName).ConnectionId = Context.ConnectionId;
+                var client = sClients.FirstOrDefault(sc => sc.ClientProfileId == ClientProfileId);
+                client.ConnectionId = Context.ConnectionId;
+                client.isActive = true;
+
             }
             else
             {
                 sClients.Add(new SClient()
                 {
+                    ClientProfileId = ClientProfileId,
                     ConnectionId = Context.ConnectionId,
-                    HostName = HostName,
-                    IPAddress = IPAddress
+                    isActive = true,
                 });
+                Clients.Client(Context.ConnectionId).RequestNetworkData();
             }
            
             Clients.Client(Context.ConnectionId).message("You have connected to server!");
@@ -40,6 +44,13 @@ namespace SPWSAppDeploymentAPINETFX.Hubs
                 Clients.Client(wClient.ConnectionId).updateNetClients();
             }
             
+        }
+
+        public void ReceiveNetworkData(int ClientProfileId,string HostName,string IPAddress)
+        {
+            var client = sClients.FirstOrDefault(sc => sc.ClientProfileId == ClientProfileId);
+            client.HostName = HostName;
+            client.IPAddress = IPAddress;
         }
 
         public void WebJoin(string HostName)
@@ -81,7 +92,8 @@ namespace SPWSAppDeploymentAPINETFX.Hubs
 
                 if (sClients.Exists(sc => sc.HostName == HostName))
                 {
-                    sClients.Remove(sClients.FirstOrDefault(sc => sc.HostName == HostName));
+                    //sClients.Remove();
+                    sClients.FirstOrDefault(sc => sc.HostName == HostName).isActive = false;
                 }
                 foreach (var wClient in wClients)
                 {
@@ -92,12 +104,27 @@ namespace SPWSAppDeploymentAPINETFX.Hubs
 
         }
 
+        public override Task OnDisconnected(bool stopCalled)
+        {
+            if (sClients.Exists(sc => sc.ConnectionId == Context.ConnectionId))
+            {
+                sClients.FirstOrDefault(sc => sc.ConnectionId == Context.ConnectionId).isActive = false;
+            }
+            foreach (var wClient in wClients)
+            {
+                Clients.Client(wClient.ConnectionId).updateNetClients();
+            }
+            return base.OnDisconnected(stopCalled);
+        }
+
         public class SClient
         {
             public string ConnectionId { get; set; }
             public string HostName { get; set; }
             public string IPAddress { get; set; }
             public int ClientProfileId { get; set; }
+            public DateTime LastActiveTime { get; set; }
+            public bool isActive { get; set; }
         }
 
         public enum ServerRequestStatus

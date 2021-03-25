@@ -13,7 +13,7 @@ namespace SPWSAppDeploymentAPINETFX.Models
     public class ClientProfile
     {
         [Key]
-        public int ClientProfileId { get; set; }
+        public long ClientProfileId { get; set; }
 
         public string AssetTag { get; set; }
         public static List<ClientProfile> local;
@@ -60,7 +60,7 @@ namespace SPWSAppDeploymentAPINETFX.Models
             this.FPID = local.Count() + 1;
         }
         public int FPID { get; set; }
-        public int ClientProfileId { get; set; }
+        public long ClientProfileId { get; set; }
         public static List<RequestFP> local;
     }
     public class SystemInstallationRecord
