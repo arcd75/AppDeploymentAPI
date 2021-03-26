@@ -53,6 +53,43 @@ namespace SPWSAppDeploymentAPINETFX.Models
 
     }
 
+    public class ClientProfileGroupMember
+    {
+        [Key]
+        public long ClientProfileGroupMemberId { get; set; }
+        public long ClientProfileGroupId { get; set; }
+        public long ClientProfileId { get; set; }
+        public static List<ClientProfileGroupMember> local;
+        public static async Task ReloadLocal()
+        {
+            await Task.Factory.StartNew(() =>
+            {
+                using (var adc = new ADContext())
+                {
+                    ClientProfileGroupMember.local = adc.Database.SqlQuery<ClientProfileGroupMember>($"SELECT * FROM dbo.ClientProfileGroupMemberships").ToList();
+                }
+            });
+        }
+    }
+
+    public class ClientProfileGroup
+    {
+        [Key]
+        public long ClientProfileGroupId { get; set; }
+        public string Name { get; set; }
+        public static List<ClientProfileGroup> local;
+        public static async Task ReloadLocal()
+        {
+            await Task.Factory.StartNew(() =>
+            {
+                using (var adc = new ADContext())
+                {
+                    ClientProfileGroup.local = adc.Database.SqlQuery<ClientProfileGroup>($"SELECT * FROM dbo.ClientProfileGroups").ToList();
+                }
+            });
+        }
+    }
+
     public class RequestFP
     {
         public RequestFP()
@@ -63,6 +100,7 @@ namespace SPWSAppDeploymentAPINETFX.Models
         public long ClientProfileId { get; set; }
         public static List<RequestFP> local;
     }
+
     public class SystemInstallationRecord
     {
         [Key]
@@ -185,7 +223,8 @@ namespace SPWSAppDeploymentAPINETFX.Models
         public DbSet<ADUser> ADUsers { get; set; }
         public DbSet<ClientProfile> ClientProfiles { get; set; }
         public DbSet<ClientProfileDetail> ClientProfileDetails { get; set; }
-
+        public DbSet<ClientProfileGroup> ClientProfileGroups { get; set; }
+        public DbSet<ClientProfileGroupMember> ClientProfileMembers { get; set; }
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             modelBuilder.Entity<SystemInstallationRecord>().ToTable("SystemInstallationRecords");
@@ -193,6 +232,8 @@ namespace SPWSAppDeploymentAPINETFX.Models
             modelBuilder.Entity<ADUser>().ToTable("Users");
             modelBuilder.Entity<ClientProfile>().ToTable("ClientProfiles");
             modelBuilder.Entity<ClientProfileDetail>().ToTable("ClientProfileDetails");
+            modelBuilder.Entity<ClientProfileGroup>().ToTable("ClientProfileGroups");
+            modelBuilder.Entity<ClientProfileGroupMember>().ToTable("ClientProfileGroupMemberships");
         }
         public void InitializeDatabase(ADContext context)
         {

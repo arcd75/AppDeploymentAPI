@@ -30,6 +30,8 @@ namespace SPWSAppDeploymentAPINETFX
             RequestFP.local = new List<RequestFP>();
             await ClientProfile.ReloadLocal();
             await ClientProfileDetail.ReloadLocal();
+            await ClientProfileGroupMember.ReloadLocal();
+            await ClientProfileGroup.ReloadLocal();
             foreach (var item in ServerProfile.local)
             {
                 ServerInstance.serverInstances.Add(new ServerInstance(item.IPAddress, item.Username, item.Password));

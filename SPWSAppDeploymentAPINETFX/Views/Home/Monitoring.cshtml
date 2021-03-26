@@ -1,9 +1,118 @@
-﻿@section headerScripts
+﻿
+
+<div class="row">
+    <h2>Header / Sorting / Filter</h2>
+</div>
+<div class="row">
+    <div class="col-md-8">
+        <h2>Groups</h2>
+        <div data-bind="foreach: ClientProfileGroup">
+            <div>
+                <div class="row">
+                    <div class="col-sm-11">
+                        <p data-bind="text: Name"></p>
+
+                    </div>
+                    <div class="col-sm-1">
+                        <a data-bind="
+                       text: LinkText,
+                       click: ToggleVisibility"></a>
+                    </div>
+                </div>
+                <div data-bind="css: {hidden: !isVisible}, foreach: GroupClients" style="height:500px;background-color:green;">
+                    <div class="col-sm-3">
+                        Unit
+                    </div>
+                    <div class="col-sm-3">
+                        Unit
+                    </div>
+                    <div class="col-sm-3">
+                        Unit
+                    </div>
+                    <div class="col-sm-3">
+                        Unit
+                    </div>
+                    <div class="col-sm-3">
+                        Unit
+                    </div>
+                    <div class="col-sm-3">
+                        Unit
+                    </div>
+                    <div class="col-sm-3">
+                        Unit
+                    </div>
+                    <div class="col-sm-3">
+                        Unit
+                    </div>
+                    <div class="col-sm-3">
+                        Unit
+                    </div>
+                    <div class="col-sm-3">
+                        Unit
+                    </div>
+                    <div class="col-sm-3">
+                        Unit
+                    </div>
+                </div>
+                
+            </div>
+            
+
+
+
+        </div>
+        <h2>Clients</h2>
+        <div data-bind="foreach: Clients">
+            <div class="col-md-3">
+                <input type="checkbox" data-bind="
+                       checkedValue : $data,
+                       checked: $root.selectedClients
+                     " />
+                <h5 data-bind="text: HostName"></h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <h2>Controls</h2>
+        <a data-bind="click: $root.ToggleCCVisibility">
+            <h3>Client </h3>
+        </a>
+
+        <div data-bind="css: { hidden : !$root.ClientControlsVisibility() }">
+            <p data-bind="text:selectedText"></p>
+        </div>
+
+        <a data-bind="click: $root.ToggleGCVisibility">
+            <h3>
+                Group
+            </h3>
+        </a>
+        <div data-bind="css: { hidden: !$root.GroupControlsVisibility()}">
+            <h4>Add Group</h4>
+            <div>
+                <div class="form-group">
+                    <label for="GCAGName">Group Name:</label>
+                    <input type="text" data-bind="value: $root.addGroupText" />
+                    <input type="submit" data-bind="click: $root.addGroup" />
+                </div>
+            </div>
+            <p>Please select a group</p>
+            <h4>Manage Members</h4>
+            <button>Add Member</button>
+            <button>Remove Member</button>
+        </div>
+
+    </div>
+
+</div>
+
+@section headerScripts
 {
     <script type="text/javascript">
         var viewModel;
-        function Client(ConnectionId,HostName,IPAddress) {
+        function Client(ClientProfileId, ConnectionId, HostName, IPAddress) {
             var self = this;
+            self.ClientProfileId = ko.observable(ClientProfileId);
             self.ConnectionId = ko.observable(ConnectionId);
             self.HostName = ko.observable(HostName);
             self.IPAddress = ko.observable(IPAddress);
@@ -59,7 +168,7 @@
                             for (var i = 0; i < parsedData.length; i++) {
                                 var currentData = parsedData[i];
 
-                                var client = new Client(currentData.ConnectionId, currentData.HostName, currentData.IPAddress);
+                                var client = new Client(currentData.ClientProfileId, currentData.ConnectionId, currentData.HostName, currentData.IPAddress);
 
                                 viewModel.Clients.push(client);
 
@@ -70,13 +179,77 @@
                 });
         }
 
+        function RefreshGroups() {
+            $.ajax(getGroups,
+                {
+                    method: "GET",
+                    dataType: "application/json",
+                    statusCode: {
+                        200: function (data) {
+                            console.log(data);
+                            var responseText = data.responseText;
+                            //var dataText = responseText.substr(responseText.indexOf("Data") + 7, responseText.length - (responseText.indexOf("Data") + 7 - 2));
+                            //responseText = responseText.substr(0, responseText.indexOf("Data") + 7) +"\"\"" +responseText.substr(responseText.length - 2);
+                            //responseText = responseText.trimStart('"');
+                            //responseText = responseText.trimEnd('"');
+                            //console.log(respon10e)
+
+                            //console.log(responseText);
+                            //alertify.alert(responseText);
+                            //console.log(JSON.parse(responseText.toString()));
+                            var parsedData = JSON.parse(responseText);
+                            parsedData = JSON.parse(parsedData);
+                            //alertify.alert(parsedData.Status);
+                            if (parsedData.Status == "Ok!") {
+                                var groupData = JSON.parse(parsedData.Data);
+                                viewModel.ClientProfileGroup([]);
+                                for (var i = 0; i < groupData.length; i++) {
+                                    var group = groupData[i];
+                                    viewModel.ClientProfileGroup.push(new ClientProfileGroup(group.ClientProfileGroupId, group.Name));
+                                }
+                            }
+                            else {
+
+                            }
+                        }
+                    }
+                });
+        }
+
+        function ClientProfileGroup(ClientProfileGroupId, Name) {
+            var self = this;
+            self.ClientProfileGroupId = ko.observable(ClientProfileGroupId);
+            self.Name = ko.observable(Name);
+            self.isVisible = ko.observable(false);
+            self.ToggleVisibility = function () {
+                self.isVisible(!self.isVisible());
+            }
+            self.LinkText = ko.computed(function () {
+                return self.isVisible() ? "Collapse" : "Expand";
+            });
+            
+
+        }
+
         function ViewModel() {
             var self = this;
+            self.ClientProfileGroupMember = ko.observableArray();
+            self.ClientProfileGroup = ko.observableArray();
             self.Clients = ko.observableArray();
             self.selectedClients = ko.observableArray();
             self.selectedClientsCount = ko.pureComputed(function () {
                 return self.selectedClients().length;
             });
+            self.ClientControlsVisibility = ko.observable(false);
+            self.GroupControlsVisibility = ko.observable(false);
+            self.ToggleCCVisibility = function () {
+                self.ClientControlsVisibility(!self.ClientControlsVisibility());
+                self.GroupControlsVisibility(false);
+            }
+            self.ToggleGCVisibility = function () {
+                self.GroupControlsVisibility(!self.GroupControlsVisibility());
+                self.ClientControlsVisibility(false);
+            }
             self.selectedText = ko.pureComputed(function () {
                 if (self.selectedClientsCount() == 0) {
                     return "Please select a client";
@@ -85,40 +258,55 @@
                     return "Selected 1 client";
                 }
                 else if (self.selectedClientsCount() > 1) {
-                    return "Selected " + self.selectedClientsCount() + " clients"; 
+                    return "Selected " + self.selectedClientsCount() + " clients";
                 }
             });
+            self.addGroup = function () {
+                if (self.addGroupText().length == 0) {
+                    alertify.error("Please enter a group name");
+                }
+                else {
+                    var match = ko.utils.arrayFilter(self.ClientProfileGroup(), function (cpg) {
+                        return cpg.Name() == self.addGroupText()
+                    });
+                    if (match > 0) {
+                        alertify.error("A group with the same name already exists.")
+                    }
+                    else {
+                        alertify.confirm("Add Group", "Are you sure you want to add the group? " + self.addGroupText(),
+                            function () {
+
+                                $.ajax(addGroupUrl + "/" + self.addGroupText(),
+                                    {
+                                        method: "GET",
+                                        dataType: "application/json",
+                                        statusCode: {
+                                            200: function (data) {
+                                                console.log(data);
+                                                var parsedData = JSON.parse(data.responseText);
+                                                //alertify.notify(data.responseText);
+
+                                            }
+                                        }
+                                    });
+                                self.addGroupText('');
+                            },
+                            function () {
+                                alertify.error("Add group cancelled!");
+                            });
+                    }
+                }
+
+            }
+            self.addGroupText = ko.observable('');
         }
     </script>
 }
 
-<div class="row">
-    <h1>Header / Sorting / Filter</h1>
-</div>
-<div class="row">
-    <div class="col-md-8" style="background:green;">
-        <h5>Clients</h5>
-        <div data-bind="foreach: Clients">
-            <div class="col-md-3">
-                <input type="checkbox" data-bind="
-                       checkedValue : $data,
-                       checked: $root.selectedClients
-                     "/>
-                <h5 data-bind="text: HostName"></h5>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4" style="background:orange;">
-        <h5>Controls</h5>
-        <p data-bind="text:selectedText"></p>
-    </div>
-
-</div>
-
 @section scripts
 {
     <script type="text/javascript">
-       
+
         $(document).ready(function () {
             $.support.cors = !0;
 
@@ -131,6 +319,7 @@
             });
             viewModel = new ViewModel();
             ko.applyBindings(viewModel);
+            RefreshGroups();
             RefreshClients();
         });
     </script>
