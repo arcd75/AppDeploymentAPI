@@ -100,22 +100,32 @@ namespace SPWSAppDeploymentAPINETFX.Controllers
                     adc.Database.BeginTransaction();
                     var requestString = await Request.Content.ReadAsStringAsync();
                     var reqData = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ClientProfileDetail>>(requestString);
-                    string[] column1Rep = {"HostName","Serial Number"};
-                    if (reqData.Exists(cpd => column1Rep.Contains(cpd.ColumnName) ))
-                    {
-                        var hostNameDetail = reqData.FirstOrDefault(cpd => cpd.ColumnName == "HostName");
-                        var clientProfileDetail = new ClientProfileDetail();
-                        var instance = ClientProfileDetail.local.FirstOrDefault(cpd => cpd.ClientProfileId == ClientProfileId && cpd.ColumnName == "HostName");
-                        if (instance == null)
-                        {
 
-                            adc.ClientProfileDetails.Add(hostNameDetail);
-                        }
-                        else
+                    string[] column1Rep = { "HostName", "Serial Number", "MAC", "License", "Operating System", "System Manufacturer", "System Model", "Processor", "RAM","Last Windows Update","StartUp Date" };
+
+                    if (reqData.Exists(cpd => column1Rep.Contains(cpd.ColumnName)))
+                    {
+                        foreach (var col in column1Rep)
                         {
-                            instance = adc.ClientProfileDetails.Find(instance.ClientProfileDetailId);
-                            instance.Value = hostNameDetail.Value;
+                            var colDetail = reqData.FirstOrDefault(cpd => cpd.ColumnName == col);
+                            if (colDetail != null)
+                            {
+                                var clientProfileDetail = new ClientProfileDetail();
+                                var instance = ClientProfileDetail.local.FirstOrDefault(cpd => cpd.ClientProfileId == ClientProfileId && cpd.ColumnName == col);
+                                if (instance == null)
+                                {
+                                    colDetail.ClientProfileId = ClientProfileId;
+                                    adc.ClientProfileDetails.Add(colDetail);
+                                }
+                                else
+                                {
+                                    instance = adc.ClientProfileDetails.Find(instance.ClientProfileDetailId);
+                                    instance.Value = colDetail.Value;
+                                }
+                            }
+                           
                         }
+
                     }
                     if (reqData.Exists(cpd => cpd.ColumnName == "IPAddress"))
                     {
@@ -124,14 +134,19 @@ namespace SPWSAppDeploymentAPINETFX.Controllers
                         // GET Records that matches in the DB and retain
                         var RetainedIPAddresses = ExistingIPAddressData.Where(cpd => IPAddressData.Select(ipd => ipd.Value).ToArray().Contains(cpd.Value)).ToList();
                         // Remove IP Addresses that Didnt match retained IP
-                        adc.ClientProfileDetails.RemoveRange(adc.ClientProfileDetails.Where(cpd => cpd.ColumnName == "IPAddress" && cpd.ClientProfileId == ClientProfileId && !RetainedIPAddresses.Select(ripa => ripa.Value).ToArray().Contains(cpd.Value)));
+                        var ripaa = RetainedIPAddresses.Select(cpd => cpd.Value);
+                        adc.ClientProfileDetails.RemoveRange(adc.ClientProfileDetails.Where(cpd => cpd.ColumnName == "IPAddress" && cpd.ClientProfileId == ClientProfileId && !ripaa.Contains(cpd.Value)));
                         // Add New records that didnt exist in the existing ip address but existing in the request
-                        var NewIPAdressData = IPAddressData.Where(ipd => !RetainedIPAddresses.Select(cpd => cpd.Value).ToArray().Contains(ipd.Value));
+                        
+                        var NewIPAdressData = IPAddressData.Where(ipd => !ripaa.Contains(ipd.Value));
                         foreach (var item in NewIPAdressData)
                         {
+                            item.ClientProfileId = ClientProfileId;
                             adc.ClientProfileDetails.Add(item);
                         }
                     }
+
+
 
 
                     adc.SaveChanges();
@@ -223,7 +238,7 @@ namespace SPWSAppDeploymentAPINETFX.Controllers
             string Status = "";
             try
             {
-                result = Newtonsoft.Json.JsonConvert.SerializeObject(ClientProfileGroup.local); 
+                result = Newtonsoft.Json.JsonConvert.SerializeObject(ClientProfileGroup.local);
                 Status = "Ok!";
             }
             catch (Exception ex)
