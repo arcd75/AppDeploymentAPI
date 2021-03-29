@@ -100,7 +100,8 @@ namespace SPWSAppDeploymentAPINETFX.Controllers
                     adc.Database.BeginTransaction();
                     var requestString = await Request.Content.ReadAsStringAsync();
                     var reqData = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ClientProfileDetail>>(requestString);
-                    if (reqData.Exists(cpd => cpd.ColumnName == "HostName"))
+                    string[] column1Rep = {"HostName","Serial Number"};
+                    if (reqData.Exists(cpd => column1Rep.Contains(cpd.ColumnName) ))
                     {
                         var hostNameDetail = reqData.FirstOrDefault(cpd => cpd.ColumnName == "HostName");
                         var clientProfileDetail = new ClientProfileDetail();
