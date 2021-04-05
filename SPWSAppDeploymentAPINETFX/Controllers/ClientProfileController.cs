@@ -151,6 +151,7 @@ namespace SPWSAppDeploymentAPINETFX.Controllers
 
                     adc.SaveChanges();
                     adc.Database.CurrentTransaction.Commit();
+                    ClientProfileDetail.ReloadLocal();
 
                 }
                 Status = "Ok!";
@@ -251,6 +252,26 @@ namespace SPWSAppDeploymentAPINETFX.Controllers
             return Newtonsoft.Json.JsonConvert.SerializeObject(new AppsController.AppJsonResponse() { Status = Status, Data = result.ToString() });
         }
 
+        [Route("ClientProfile/GetMembers/{GroupId}")]
+        [HttpGet]
+        public string GetMembers(int GroupId)
+        {
+            string result = "";
+            string Status = "";
+            try
+            {
+                result = Newtonsoft.Json.JsonConvert.SerializeObject(ClientProfileGroupMember.local.Where(cpgm => cpgm.ClientProfileGroupId == GroupId).ToList());
+                Status = "Ok!";
+            }
+            catch (Exception ex)
+            {
+                result = ex.ToString();
+                Status = "Exception!";
+                //throw;
+            }
+            return Newtonsoft.Json.JsonConvert.SerializeObject(new AppsController.AppJsonResponse() { Status = Status, Data = result.ToString() });
+        }
+
         [Route("ClientProfile/AddGroupMembers/{GroupId}")]
         [HttpPost]
         public async Task<string> AddGroupMembers(int GroupId)
@@ -276,6 +297,7 @@ namespace SPWSAppDeploymentAPINETFX.Controllers
                     adc.SaveChanges();
                     adc.Database.CurrentTransaction.Commit();
                 }
+                await ClientProfileGroupMember.ReloadLocal();
                 Status = "Ok!";
 
             }
@@ -317,6 +339,31 @@ namespace SPWSAppDeploymentAPINETFX.Controllers
             }
             return Newtonsoft.Json.JsonConvert.SerializeObject(new AppsController.AppJsonResponse() { Status = Status, Data = result });
         }
+
+        [Route("ClientProfile/GetMemberDetails/{ClientProfileId}")]
+        [HttpGet]
+        public async Task<string> GetMemberDetails(int ClientProfileId)
+        {
+            string result = "";
+            string Status = "";
+            try
+            {
+                if (ClientProfileDetail.local.Exists(cpd => cpd.ClientProfileId == ClientProfileId))
+                {
+                    result = Newtonsoft.Json.JsonConvert.SerializeObject(ClientProfileDetail.local.Where(cpd => cpd.ClientProfileId == ClientProfileId).ToList());
+                }
+                Status = "Ok!";
+            }
+            catch (Exception ex)
+            {
+                result = ex.ToString();
+                Status = "Exception!";
+                //throw;
+            }
+            return Newtonsoft.Json.JsonConvert.SerializeObject(new AppsController.AppJsonResponse() { Status = Status, Data = result.ToString() });
+        }
+
+
 
 
     }

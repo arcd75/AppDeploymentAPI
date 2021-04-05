@@ -33,9 +33,9 @@ namespace SPWSAppDeploymentAPINETFX.Models
     public class ClientProfileDetail
     {
         [Key]
-        public int ClientProfileDetailId { get; set; }
+        public long ClientProfileDetailId { get; set; }
         
-        public int ClientProfileId { get; set; }
+        public long ClientProfileId { get; set; }
         public string ColumnName { get; set; }
         public string DataType { get; set; }
         public string Value { get; set; }

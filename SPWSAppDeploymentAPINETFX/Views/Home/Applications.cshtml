@@ -19,7 +19,7 @@
                         <div>
                             <button data-bind="
                     text:ServerName,
-                    click: SelectServer" style="text-overflow:ellipsis;"></button>
+                    click: SelectServer" style="text-overflow:ellipsis;" class="btn btn-primary"></button>
                         </div>
                         <!-- /ko-->
                     </div>
@@ -31,7 +31,7 @@
                         <div>
                             <button data-bind="
                     text:AppName,
-                    click: SelectApp" style="text-overflow:ellipsis;"></button>
+                    click: SelectApp" style="text-overflow:ellipsis;" class="btn btn-primary"></button>
                         </div>
                         <!-- /ko-->
                     </div>
@@ -43,7 +43,7 @@
                         <div>
                             <button data-bind="
                     text: AppVersionName,
-                    click: SelectVersion" style="text-overflow:ellipsis;"></button>
+                    click: SelectVersion" style="text-overflow:ellipsis;" class="btn btn-primary"></button>
                         </div>
                         <!-- /ko -->
                     </div>
@@ -89,7 +89,7 @@
                 <p data-bind="text: $root.MultiSelectFilesText"></p>
             </div>
             <div>
-                <button data-bind="click: $root.DeleteMultiSelectFiles">Delete Selected</button>
+                <button data-bind="click: $root.DeleteMultiSelectFiles" class="btn btn-danger">Delete Selected</button>
             </div>
             <!-- ko if: Selected() == "Server" -->
             <div>
@@ -110,7 +110,7 @@
                     <label for="AAppappName">App Name:</label>
                     <input type="text" data-bind="value: $root.FormAddApp().AppName" name="AAppappName" id="AAppappName" class="form-control" />
                 </div>
-                <input type="submit" data-bind="click: $root.FormAddApp().AddApp" />
+                <input type="submit" class="btn btn-success" data-bind="click: $root.FormAddApp().AddApp" />
 
             </div>
             <!-- /ko -->
@@ -122,7 +122,7 @@
                 <p class="col-md-4">App: </p><p class="col-md-8" data-bind="text:SelectedApp().AppName"></p>
             </div>
 
-            <button data-bind="click: SelectedApp().DeleteApp">Delete</button>
+            <button data-bind="click: SelectedApp().DeleteApp" class="btn btn-danger">Delete</button>
             <p>Versions: </p>
             <div>
                 <h4>Add Version</h4>
@@ -144,7 +144,7 @@
                         is Major Revision
                     </label>
                 </div>
-                <input type="submit" data-bind="click:$root.FormAddVersion().AddVersion" />
+                <input type="submit" data-bind="click:$root.FormAddVersion().AddVersion" class="btn btn-success" />
 
             </div>
             <button>Add</button>
@@ -161,7 +161,7 @@
                 <p class="col-md-4">Version: </p><p class="col-md-8" data-bind="text:SelectedVersion().AppVersionName"></p>
             </div>
 
-            <button data-bind="click: SelectedVersion().DeleteVersion">Delete</button>
+            <button data-bind="click: SelectedVersion().DeleteVersion" class="btn btn-danger">Delete</button>
 
             <!-- /ko -->
             <!-- ko if: Selected() == "File"-->
@@ -192,22 +192,22 @@
                 <p class="col-md-8"></p>
                 <!-- /ko -->
             </div>
-            <button>Delete</button>
+            <button class="btn btn-danger">Delete</button>
             <!-- ko if: SelectedFile() != null-->
             <!-- ko if: SelectedFile().isFolder -->
             <div>
                 <h4>Create New Directory</h4>
                 <div class="form-group">
                     <label for="cndDirectoryName">Name</label>
-                    <input type="text" data-bind="value: $root.NewDirectory" id="cndDirectoryName" name="cndDirectoryName" />
+                    <input type="text" data-bind="value: $root.NewDirectory" id="cndDirectoryName" name="cndDirectoryName" class="form-control" />
                 </div>
-                <button data-bind="click: SelectedFile().CreateDirectory">Create</button>
+                <button data-bind="click: SelectedFile().CreateDirectory" class="btn btn-success">Create</button>
             </div>
 
 
             <div>
                 <h4>Upload Files</h4>
-                <button data-bind="click: SelectedFile().SelectFiles">Upload Files...</button>
+                <button data-bind="click: SelectedFile().SelectFiles" class="btn btn-success">Upload Files...</button>
                 <div>
                     <div class="col-sm-4">
                         <p>Name</p>
@@ -228,12 +228,12 @@
                             <p data-bind="text: FileSize"></p>
                         </div>
                         <div class="col-sm-4">
-                            <button data-bind="click:Delete">remove</button>
+                            <button data-bind="click:Delete" class="btn btn-danger">remove</button>
                         </div>
                     </div>
                     
                 </div>
-                <button data-bind="click: SelectedFile().UploadFile">Upload</button>
+                <button data-bind="click: SelectedFile().UploadFile" class="btn btn-success">Upload</button>
             </div>
             <!-- /ko -->
             <!-- /ko -->
@@ -257,7 +257,7 @@
         </div>
         <div class="col-md-11">
             <i data-bind="class: fileClass"></i>
-            <button class="col-md-10 " data-bind="text:AppFileName, click: activity" style="text-align:left;">
+            <button class="col-md-10 btn" data-bind="text:AppFileName, click: activity" style="text-align:left;" >
             </button>
 
         </div>
@@ -547,7 +547,7 @@
             self.AppVersionName = ko.observable(AppVersionName);
             self.isMajorRevision = ko.observable(isMajorRevision)
             self.AddVersion = function () {
-                var match = viewModel.Versions().length == 0 ? ko.observable([]) :  ko.util.arrayFilter(viewModel.Versions(), function (av) {
+                var match = viewModel.Versions().length == 0 ? ko.observable([]) :  ko.utils.arrayFilter(viewModel.Versions(), function (av) {
                     return av.AppVersionName() == self.AppVersionName();
                 });
                 if (match.length > 0) {

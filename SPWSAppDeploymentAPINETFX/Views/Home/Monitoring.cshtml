@@ -1,5 +1,15 @@
 ﻿
-
+<style>
+   
+    .active {
+       
+        color: green;
+    }
+    .inactive {
+     
+        color: red;
+    }
+</style>
 <div class="row">
     <h2>Header / Sorting / Filter</h2>
 </div>
@@ -10,7 +20,8 @@
             <div>
                 <div class="row">
                     <div class="col-sm-11">
-                        <p data-bind="text: Name"></p>
+                        <a data-bind="text: Name,
+                           click: selectGroup"></a>
 
                     </div>
                     <div class="col-sm-1">
@@ -19,40 +30,12 @@
                        click: ToggleVisibility"></a>
                     </div>
                 </div>
-                <div data-bind="css: {hidden: !isVisible}, foreach: GroupClients" style="height:500px;background-color:green;">
-                    <div class="col-sm-3">
-                        Unit
-                    </div>
-                    <div class="col-sm-3">
-                        Unit
-                    </div>
-                    <div class="col-sm-3">
-                        Unit
-                    </div>
-                    <div class="col-sm-3">
-                        Unit
-                    </div>
-                    <div class="col-sm-3">
-                        Unit
-                    </div>
-                    <div class="col-sm-3">
-                        Unit
-                    </div>
-                    <div class="col-sm-3">
-                        Unit
-                    </div>
-                    <div class="col-sm-3">
-                        Unit
-                    </div>
-                    <div class="col-sm-3">
-                        Unit
-                    </div>
-                    <div class="col-sm-3">
-                        Unit
-                    </div>
-                    <div class="col-sm-3">
-                        Unit
-                    </div>
+                <div data-bind="css: {hidden: !isVisible}, foreach: GroupClients" >
+                   <!--ko using: Client-->
+                   <a data-bind="class: Style,click: clickEvent">
+                       <p data-bind="text: HostName"></p>
+                   </a>
+                    <!--/ko-->
                 </div>
                 
             </div>
@@ -63,12 +46,16 @@
         </div>
         <h2>Clients</h2>
         <div data-bind="foreach: Clients">
-            <div class="col-md-3">
-                <input type="checkbox" data-bind="
+            <div class="col-md-3 ">
+                <div class="form-group">
+                    <input type="checkbox" data-bind="
                        checkedValue : $data,
-                       checked: $root.selectedClients
-                     " />
-                <h5 data-bind="text: HostName"></h5>
+                       checked: $root.selectedClients,
+                     "  />
+                    <label data-bind="text: HostName"></label>
+                </div>
+                
+
             </div>
         </div>
     </div>
@@ -80,7 +67,63 @@
 
         <div data-bind="css: { hidden : !$root.ClientControlsVisibility() }">
             <p data-bind="text:selectedText"></p>
+            <!--ko if: $root.selectedClients().length > 0-->
+            <div class="form-group">
+                <label>Add to Group: </label>
+                <select class="form-control" data-bind="
+                        value: $root.AGSelectedGroup,
+                        options: ClientProfileGroup,
+                        optionsText : 'Name',
+                        optionsValue: $data,
+                        optionsCaption: '---Select Group---'">
+                </select>
+                <button data-bind="click: addClientsToGroup, attr:{ disabled: typeof $root.AGSelectedGroup() == 'undefined'}" class="btn btn-success">Submit</button>
+            </div>
+            <h4>Install/Uninstall/Close apps</h4>
+            <div class="form-group">
+                <label>Server</label>
+                <select class="form-control" data-bind="
+                        value: $root.SelectedServer,
+                        options: $root.Servers,
+                        optionsText: 'ServerName',
+                        optionsCaption: '---Select Server---',
+                        ">
+                </select>
+            </div>
+            <!--ko if: typeof $root.SelectedServer() != 'undefined' -->
+            <div class="form-group">
+                <label>App</label>
+                <select class="form-control" data-bind="value: $root.SelectedApp,
+                        options: $root.SelectedServer().Apps(),
+                        optionsValue: $data,
+                        optionsText: 'AppName',
+                        optionsCaption: '---Select App---'
+                        ">
+                </select>
+                <div class="btn-group">
+                    <button data-bind="attr: {disabled: typeof $root.SelectedApp() == 'undefined'},
+                            click : $root.InstallApp" class="btn btn-success">Install</button>
+                    <button data-bind="attr: {disabled: typeof $root.SelectedApp() == 'undefined'}" class="btn btn-danger">Uninstall</button>
+                    <button data-bind="attr: {disabled: typeof $root.SelectedApp() == 'undefined'},
+                            click: $root.CloseApp" class="btn btn-primary">
+                        Close App
+                    </button>
+                </div>
+
+            </div>
+
+            <!--/ko-->
+            <div class="form-group">
+                <button class="btn btn-danger" data-bind="
+                            click: $root.PushUpdates">
+                    Push Updates
+                </button>
+            </div>
+
+
+            <!--/ko-->
         </div>
+       
 
         <a data-bind="click: $root.ToggleGCVisibility">
             <h3>
@@ -96,11 +139,30 @@
                     <input type="submit" data-bind="click: $root.addGroup" />
                 </div>
             </div>
-            <p>Please select a group</p>
-            <h4>Manage Members</h4>
-            <button>Add Member</button>
-            <button>Remove Member</button>
+            <!--ko if: typeof $root.SelectedGroup() != 'undefined' -->
+            <h4>Selected Group</h4>
+            <p data-bind="text: $root.SelectedGroup().Name"></p>
+            <button data-bind="click: $root.SelectedGroup().SelectClients" class="btn btn-primary"> Select Clients</button>
+            <!--/ko-->
+       
         </div>
+        <a data-bind="click: $root.ToggleGCCVisibility">
+            <h3>Selected Client</h3>
+        </a>
+        <div data-bind="css: {hidden : !$root.GroupClientControlsVisibility()}">
+            <p>Details</p>
+            <!--ko if: SelectedClientProfile-->
+            <!--ko using: SelectedClientProfile -->
+            <!--ko foreach: MemberDetails-->
+            <div class="form-group">
+                <label data-bind="text: ColumnName"></label>
+                <input type="text" readonly data-bind="value: Value" class="form-control" />
+            </div>
+            <!--/ko-->
+            <!--/ko-->
+            <!--/ko-->
+        </div>
+        
 
     </div>
 
@@ -110,7 +172,7 @@
 {
     <script type="text/javascript">
         var viewModel;
-        function Client(ClientProfileId, ConnectionId, HostName, IPAddress) {
+        function Client(ClientProfileId, ConnectionId, HostName, IPAddress,isActive) {
             var self = this;
             self.ClientProfileId = ko.observable(ClientProfileId);
             self.ConnectionId = ko.observable(ConnectionId);
@@ -126,7 +188,7 @@
                         statusCode:
                         {
                             200: function (data) {
-                                console.log(data);
+                                //console.log(data);
                                 viewModel.Tasks([]);
                                 //var processedText = data.responseText.replaceAll("\\", "");
                                 //processedText = processedText.replaceAll("\"", '"');
@@ -142,11 +204,75 @@
                             }
                         }
                     }
-                )
+                );
             }
+            self.displayClientControl = function () {
+                viewModel.GroupControlsVisibility(false);
+                viewModel.GroupClientControlsVisibility(false);
+                viewModel.ClientControlsVisibility(true);
+            };
             self.updateSelectText = function () {
                 viewModel.selectedClients();
             };
+            self.isActive = ko.observable(isActive);
+            self.Style = ko.computed(function () {
+                return self.isActive() ? "active" : "inactive";
+            });
+            self.MemberDetails = ko.observableArray();
+            self.GetMemberDetails = function () {
+                $.ajax(getMemberDetails + "/" + self.ClientProfileId(),
+                    {
+                        method: "GET",
+                        dataType: "application/json",
+                        statusCode: {
+                            200: function (data) {
+                                //console.log(data);
+                                //console.log(data.responseText);
+                                //console.log(JSON.parse(data.responseText));
+                                //console.log(JSON.parse(JSON.parse(data.responseText)));
+                                self.MemberDetails([]);
+                                var parsedData = JSON.parse(JSON.parse(data.responseText));
+                                var detailData = JSON.parse(parsedData.Data);
+                                for (var i = 0; i < detailData.length; i++) {
+                                    var detail = detailData[i];
+                                    self.MemberDetails.push(new ClientProfileDetail(detail.ClientProfileDetailId, detail.ClientProfileId, detail.ColumnName, detail.DataType, detail.Value));
+                                }
+                            }
+                        }
+                    });
+            };
+            self.clickEvent = function () {
+                //console.log("CLICKED!");
+               
+                viewModel.GroupClientControlsVisibility(true);
+                viewModel.GroupControlsVisibility(false);
+                viewModel.ClientControlsVisibility(false);
+                viewModel.SelectedClientProfile(self);
+                self.GetMemberDetails();
+            }
+
+           
+        }
+
+        function GroupClient(ClientProfileGroupMemberId,ClientProfileGroupId,ClientProfileId) {
+            var self = this;
+            self.ClientProfileGroupMemberId = ko.observable(ClientProfileGroupMemberId);
+            self.ClientProfileGroupId = ko.observable(ClientProfileGroupId);
+            self.ClientProfileId = ko.observable(ClientProfileId);
+            self.Client = ko.computed(function () {
+                return ko.utils.arrayFirst(viewModel.Clients(), function (d) {
+                    return d.ClientProfileId() == self.ClientProfileId();
+                });
+            });
+        }
+
+        function ClientProfileDetail(ClientProfileDetailId, ClientProfileId, ColumnName, DataType, Value) {
+            var self = this;
+            self.ClientProfileDetailId = ko.observable(ClientProfileDetailId);
+            self.ClientProfileId = ko.observable(ClientProfileId);
+            self.ColumnName = ko.observable(ColumnName);
+            self.DataType = ko.observable(DataType);
+            self.Value = ko.observable(Value);
         }
 
         function RefreshClients() {
@@ -164,13 +290,25 @@
                             var processedText = data.responseText.replaceAll('""', '"');
                             var parsedData = JSON.parse(processedText);
                             parsedData = JSON.parse(parsedData);
-                            viewModel.Clients([]);
+                            //viewModel.Clients([]);
                             for (var i = 0; i < parsedData.length; i++) {
                                 var currentData = parsedData[i];
+                                var match = ko.utils.arrayFirst(viewModel.Clients(), function (d) {
+                                    return d.ClientProfileId() == currentData.ClientProfileId;
+                                });
+                                
+                                if (match) {
+                                   
+                                    match.isActive(currentData.isActive);
+                                    match.ConnectionId(currentData.ConnectionId);
+                                }
+                                else {
+                                 
+                                    var client = new Client(currentData.ClientProfileId, currentData.ConnectionId, currentData.HostName, currentData.IPAddress, currentData.isActive);
 
-                                var client = new Client(currentData.ClientProfileId, currentData.ConnectionId, currentData.HostName, currentData.IPAddress);
-
-                                viewModel.Clients.push(client);
+                                    viewModel.Clients.push(client);
+                                }
+                               
 
                             }
 
@@ -186,7 +324,7 @@
                     dataType: "application/json",
                     statusCode: {
                         200: function (data) {
-                            console.log(data);
+                            //console.log(data);
                             var responseText = data.responseText;
                             //var dataText = responseText.substr(responseText.indexOf("Data") + 7, responseText.length - (responseText.indexOf("Data") + 7 - 2));
                             //responseText = responseText.substr(0, responseText.indexOf("Data") + 7) +"\"\"" +responseText.substr(responseText.length - 2);
@@ -216,23 +354,142 @@
                 });
         }
 
+
+        function GetServers() {
+            $.ajax(getAppServersUrl,
+                {
+                    method: "GET",
+                    dataType: "application/json",
+                    statusCode: {
+                        200: function (data) {
+                            console.log(data);
+                            viewModel.Servers([]);
+                            var processedText = data.responseText.replaceAll('""', '"');
+                            var parsedData = JSON.parse(processedText);
+                            parsedData = JSON.parse(parsedData);
+                            var processedData = JSON.parse(parsedData.Data);
+                            if (parsedData.Status == "Ok!") {
+                                for (var i = 0; i < processedData.length; i++) {
+                                    var instance = processedData[i];
+                                    viewModel.Servers.push(new Server(instance.IPAddress, instance.ServerName));
+                                }
+                            }
+                            else {
+                                alertify.notify(parsedData.Data);
+                            }
+
+                        }
+                    }
+                });
+        }
+
+        function App(AppId, AppName) {
+            var self = this;
+            self.AppId = ko.observable(AppId);
+            self.AppName = ko.observable(AppName);
+          
+
+        }
+
+        function Server(IPAddress, ServerName) {
+            var self = this;
+            self.IPAddress = ko.observable(IPAddress);
+            self.ServerName = ko.observable(ServerName);
+            self.SelectServer = function () {
+                viewModel.SelectedServer(self);
+                GetApps(self.ServerName());
+               
+            }
+            self.Apps = ko.observableArray();
+            self.GetApps = function () {
+                $.ajax(getAppsUrl + "/" + self.ServerName(),
+                    {
+                        method: "GET",
+                        dataType: "application/json",
+                        statusCode:
+                        {
+                            200: function (data) {
+                                console.log(data);
+                                var parsedData = JSON.parse(JSON.parse(data.responseText));
+                                if (parsedData.Status == "Ok!") {
+                                    
+                                    var dData = JSON.parse(parsedData.Data);
+                                    for (var i = 0; i < dData.length; i++) {
+                                        var cdData = dData[i];
+                                        self.Apps.push(new App(cdData.AppId, cdData.AppName));
+                                    }
+                                   
+                                }
+                            }
+                        }
+                    })
+            };
+            self.GetApps();
+       
+
+        }
+
         function ClientProfileGroup(ClientProfileGroupId, Name) {
             var self = this;
             self.ClientProfileGroupId = ko.observable(ClientProfileGroupId);
             self.Name = ko.observable(Name);
             self.isVisible = ko.observable(false);
+            self.GroupClients = ko.observableArray();
             self.ToggleVisibility = function () {
                 self.isVisible(!self.isVisible());
             }
             self.LinkText = ko.computed(function () {
                 return self.isVisible() ? "Collapse" : "Expand";
             });
+            self.GetMembers = function () {
+                $.ajax(getGroupMembers + "/" + self.ClientProfileGroupId(),
+                    {
+                        method: "GET",
+                        dataType: "application/json",
+                        statusCode: {
+                            200: function (data) {
+                                console.log(data);
+                                //data = data.trimStart('"');
+                                //data = data.trimEnd('"')
+                                var parsedData = JSON.parse(data.responseText);
+                                parsedData = JSON.parse(parsedData);
+                                if (parsedData.Status == "Ok!") {
+                                    self.GroupClients([]);
+                                    var data = JSON.parse(parsedData.Data);
+                                    for (var i = 0; i < data.length; i++) {
+                                        var member = data[i];
+                                        self.GroupClients.push(new GroupClient(member.ClientProfileGroupMember, member.ClientProfileGroupId, member.ClientProfileId));
+                                    }
+
+                                }
+                            }
+                        }
+                    });
+            };
+            self.selectGroup = function () {
+                viewModel.SelectedGroup(self);
+                viewModel.GroupClientControlsVisibility(false);
+                viewModel.ClientControlsVisibility(false);
+                viewModel.GroupControlsVisibility(true);
+            };
+            self.SelectClients = function () {
+                viewModel.selectedClients([]);
+                self.GroupClients().forEach(function (d) {
+                    viewModel.selectedClients.push(d.Client());
+                });
+            }
+            self.GetMembers();
+           
             
 
         }
 
         function ViewModel() {
             var self = this;
+            self.Servers = ko.observableArray();
+            self.SelectedServer = ko.observable();
+            self.Apps = ko.observableArray();
+            self.SelectedApp = ko.observable();
             self.ClientProfileGroupMember = ko.observableArray();
             self.ClientProfileGroup = ko.observableArray();
             self.Clients = ko.observableArray();
@@ -240,21 +497,67 @@
             self.selectedClientsCount = ko.pureComputed(function () {
                 return self.selectedClients().length;
             });
+            self.addClientsToGroup = function () {
+                if (typeof self.AGSelectedGroup() != 'undefined') {
+                    var index = [];
+                    for (var i = 0; i < self.selectedClients().length; i++) {
+                        var client = self.selectedClients()[i];
+                        index.push(client.ClientProfileId());
+                    }
+                    $.ajax(addGroupMembers + "/" + self.AGSelectedGroup().ClientProfileGroupId(),
+                        {
+                            data: JSON.stringify(index),
+                            method: "POST",
+                            dataType: "application/json",
+                            statusCode:
+                            {
+                                200: function (data) {
+                                    //console.log(data);
+                                    var parsedData = JSON.parse(data.responseText);
+                                    if (parsedData.Status == "Ok!") {
+                                        self.AGSelectedGroup().GetMembers();
+                                    }
+                                }
+                            }
+                        });
+
+                    //var match = ko.utils.arrayFilter(self.AGSelectedGroup().GroupClients(), function (d) {
+                    //    return d.ClientProfileId() == client.ClientProfileId()
+                    //});
+
+                    //if (match.length == 0) {
+                    //    self.AGSelectedGroup().GroupClients.push(new GroupClient(client.ClientProfileId()));
+                    //}
+
+                }
+                
+            }
             self.ClientControlsVisibility = ko.observable(false);
             self.GroupControlsVisibility = ko.observable(false);
+            self.GroupClientControlsVisibility = ko.observable(false);
             self.ToggleCCVisibility = function () {
                 self.ClientControlsVisibility(!self.ClientControlsVisibility());
                 self.GroupControlsVisibility(false);
+                self.GroupClientControlsVisibility(false);
             }
             self.ToggleGCVisibility = function () {
                 self.GroupControlsVisibility(!self.GroupControlsVisibility());
                 self.ClientControlsVisibility(false);
+                self.GroupClientControlsVisibility(false);
+            }
+            self.ToggleGCCVisibility = function () {
+                self.GroupClientControlsVisibility(!self.GroupClientControlsVisibility());
+                self.ClientControlsVisibility(false);
+                self.GroupControlsVisibility(false);
             }
             self.selectedText = ko.pureComputed(function () {
                 if (self.selectedClientsCount() == 0) {
                     return "Please select a client";
                 }
                 else if (self.selectedClientsCount() == 1) {
+                    viewModel.ClientControlsVisibility(true);
+                    viewModel.GroupControlsVisibility(false);
+                    viewModel.GroupClientControlsVisibility(false);
                     return "Selected 1 client";
                 }
                 else if (self.selectedClientsCount() > 1) {
@@ -282,7 +585,7 @@
                                         dataType: "application/json",
                                         statusCode: {
                                             200: function (data) {
-                                                console.log(data);
+                                                //console.log(data);
                                                 var parsedData = JSON.parse(data.responseText);
                                                 //alertify.notify(data.responseText);
 
@@ -298,7 +601,45 @@
                 }
 
             }
+            self.CloseApp = function () {
+                var ClientIds = [];
+                for (var i = 0; i < self.selectedClients().length; i++) {
+                    var clientProfile = self.selectedClients()[i];
+                    ClientIds.push(clientProfile.ClientProfileId());
+                }
+                var serverName = self.SelectedServer().ServerName();
+                var appId = self.SelectedApp().AppId();
+                adHub.server.closeApp(ClientIds, serverName, appId);
+            }
+
+            self.PushUpdates = function () {
+                var ClientIds = [];
+                for (var i = 0; i < self.selectedClients().length; i++) {
+                    var clientProfile = self.selectedClients()[i];
+                    ClientIds.push(clientProfile.ClientProfileId());
+                }
+                adHub.server.pushUpdates(ClientIds); 
+            }
+
+            self.InstallApp = function () {
+                var ClientIds = [];
+                for (var i = 0; i < self.selectedClients().length; i++) {
+                    var clientProfile = self.selectedClients()[i];
+                    ClientIds.push(clientProfile.ClientProfileId());
+                }
+                var serverName = self.SelectedServer().ServerName();
+                var appId = self.SelectedApp().AppId();
+                adHub.server.installApp(ClientIds,serverName,appId); 
+            }
             self.addGroupText = ko.observable('');
+            self.addGroupValue = ko.observable();
+            self.AGSelectedGroup = ko.observable();
+            self.SelectedGroup = ko.observable();
+            self.SelectedClientProfile = ko.observable();
+            self.agIndex = ko.observable(0);
+            self.iaServIndex = ko.observable(0);
+            
+            GetServers();
         }
     </script>
 }

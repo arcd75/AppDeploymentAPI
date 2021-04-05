@@ -4,6 +4,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
     <title>@ViewBag.Title</title>
+    <style>
+        body {
+            user-select: none;
+        }
+    </style>
     @Styles.Render("~/Content/css")
     <link rel="stylesheet" href='@Url.Content("~/Content/fontawesome/css/all.min.css")' />
     <link rel="stylesheet" href="@Url.Content("~/Content/alertify/css/alertify.min.css")"/>
@@ -29,6 +34,9 @@
         var addGroupMembers = '@Url.Action("AddGroupMembers","ClientProfile")';
         var deleteGroupMembers = '@Url.Action("DeleteGroupMembers","ClientProfile")';
         var getGroups = '@Url.Action("GetGroups","ClientProfile")';
+        var getGroupMembers = '@Url.Action("GetMembers","ClientProfile")';
+        var getMemberDetails = '@Url.Action("GetMemberDetails","ClientProfile")';
+
     </script>
     <script>
 
