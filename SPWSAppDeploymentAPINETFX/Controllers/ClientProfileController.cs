@@ -12,9 +12,9 @@ namespace SPWSAppDeploymentAPINETFX.Controllers
 {
     public class ClientProfileController : ApiController
     {
-        [Route("ClientProfile/RequestId")]
+        [Route("ClientProfile/RequestId/{SerialNo}")]
         [HttpGet]
-        public string RequestId()
+        public string RequestId(string SerialNo)
         {
             string result = "";
             string Status = "";
@@ -28,28 +28,32 @@ namespace SPWSAppDeploymentAPINETFX.Controllers
                     {
                         AssetTag = "",
                     };
-                    adc.Database.BeginTransaction();
-                    while (true)
+                    var sameSerial = ClientProfileDetail.local.FirstOrDefault(c => c.ColumnName == "Serial Number" && c.Value == SerialNo);
+                    if (sameSerial != null)
                     {
-                        clientProfile = adc.ClientProfiles.Add(clientProfile);
-
-                        adc.SaveChanges();
-                        if (!RequestFP.local.Exists(rfp => rfp.ClientProfileId == clientProfile.ClientProfileId))
-                        {
-                            reqpf.ClientProfileId = clientProfile.ClientProfileId;
-                            break;
-                        }
+                        clientProfile = ClientProfile.local.FirstOrDefault(c => c.ClientProfileId == sameSerial.ClientProfileId);
+                        reqpf.ClientProfileId = clientProfile.ClientProfileId;
                     }
-                    adc.Database.CurrentTransaction.Commit();
+                    else
+                    {
+                        adc.Database.BeginTransaction();
+                        while (true)
+                        {
+                            clientProfile = adc.ClientProfiles.Add(clientProfile);
 
-                    //adc.Database.CurrentTransaction.Dispose();
-
-
-
-
-
-
+                            if (!RequestFP.local.Exists(rfp => rfp.ClientProfileId == clientProfile.ClientProfileId))
+                            {
+                               
+                                adc.SaveChanges();
+                                reqpf.ClientProfileId = clientProfile.ClientProfileId;
+                                break;
+                            }
+                        }
+                      
+                        adc.Database.CurrentTransaction.Commit();
+                    }
                     RequestFP.local.Add(reqpf);
+                    ClientProfile.ReloadLocal();
                 }
                 result = Newtonsoft.Json.JsonConvert.SerializeObject(reqpf);
                 Status = "Ok!";
@@ -329,6 +333,7 @@ namespace SPWSAppDeploymentAPINETFX.Controllers
                     adc.Database.CurrentTransaction.Commit();
                 }
                 Status = "Ok!";
+                ClientProfileGroupMember.ReloadLocal();
 
             }
             catch (Exception ex)

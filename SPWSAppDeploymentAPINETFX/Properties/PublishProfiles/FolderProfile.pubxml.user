@@ -279,10 +279,10 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>03/16/2021 08:59:41</publishTime>
     </File>
     <File Include="bin/SPWSAppDeploymentAPINETFX.dll">
-      <publishTime>04/05/2021 12:14:07</publishTime>
+      <publishTime>04/06/2021 12:43:10</publishTime>
     </File>
     <File Include="bin/SPWSAppDeploymentAPINETFX.pdb">
-      <publishTime>04/05/2021 12:14:07</publishTime>
+      <publishTime>04/06/2021 12:43:10</publishTime>
     </File>
     <File Include="bin/Swagger.Net.dll">
       <publishTime>03/16/2021 08:59:42</publishTime>
@@ -5580,7 +5580,7 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>03/16/2021 09:57:09</publishTime>
     </File>
     <File Include="Views/Home/Monitoring.cshtml">
-      <publishTime>04/05/2021 12:13:51</publishTime>
+      <publishTime>04/06/2021 08:38:08</publishTime>
     </File>
     <File Include="Views/Home/Settings.cshtml">
       <publishTime>03/16/2021 09:45:53</publishTime>
