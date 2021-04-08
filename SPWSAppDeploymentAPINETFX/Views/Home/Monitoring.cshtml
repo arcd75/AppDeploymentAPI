@@ -103,7 +103,8 @@
                 <div class="btn-group">
                     <button data-bind="attr: {disabled: typeof $root.SelectedApp() == 'undefined'},
                             click : $root.InstallApp" class="btn btn-success">Install</button>
-                    <button data-bind="attr: {disabled: typeof $root.SelectedApp() == 'undefined'}" class="btn btn-danger">Uninstall</button>
+                    <button data-bind="attr: {disabled: typeof $root.SelectedApp() == 'undefined'},
+                            click : $root.UninstallApp" class="btn btn-danger">Uninstall</button>
                     <button data-bind="attr: {disabled: typeof $root.SelectedApp() == 'undefined'},
                             click: $root.CloseApp" class="btn btn-primary">
                         Close App
@@ -630,6 +631,17 @@
                 var serverName = self.SelectedServer().ServerName();
                 var appId = self.SelectedApp().AppId();
                 adHub.server.installApp(ClientIds,serverName,appId); 
+            }
+            self.UninstallApp = function () {
+                var ClientIds = [];
+                for (var i = 0; i < self.selectedClients().length; i++) {
+                    var clientProfile = self.selectedClients()[i];
+                    ClientIds.push(clientProfile.ClientProfileId());
+                }
+                var serverName = self.SelectedServer().ServerName();
+                var appId = self.SelectedApp().AppId();
+                adHub.server.uninstallApp(ClientIds, serverName, appId); 
+
             }
             self.addGroupText = ko.observable('');
             self.addGroupValue = ko.observable();

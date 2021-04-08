@@ -13,8 +13,8 @@ namespace SPWSAppDeploymentAPINETFX.Hubs
         public static List<SClient> wClients;
         public static List<SClient> sClients;
         public static List<ServerRequest> sRequest;
-        
-        
+
+
         public void Join(int ClientProfileId)
         {
             if (sClients == null)
@@ -38,16 +38,16 @@ namespace SPWSAppDeploymentAPINETFX.Hubs
                 });
                 Clients.Client(Context.ConnectionId).RequestNetworkData();
             }
-           
+
             Clients.Client(Context.ConnectionId).message("You have connected to server!");
             foreach (var wClient in wClients)
             {
                 Clients.Client(wClient.ConnectionId).updateNetClients();
             }
-            
+
         }
 
-        public void ReceiveNetworkData(int ClientProfileId,string HostName,string IPAddress)
+        public void ReceiveNetworkData(int ClientProfileId, string HostName, string IPAddress)
         {
             var client = sClients.FirstOrDefault(sc => sc.ClientProfileId == ClientProfileId);
             client.HostName = HostName;
@@ -75,7 +75,7 @@ namespace SPWSAppDeploymentAPINETFX.Hubs
             }
         }
 
-        public async Task UpdateRequest(int RequestId,ServerRequestStatus status,string Data)
+        public async Task UpdateRequest(int RequestId, ServerRequestStatus status, string Data)
         {
             await Task.Factory.StartNew(() =>
             {
@@ -100,7 +100,7 @@ namespace SPWSAppDeploymentAPINETFX.Hubs
                     Clients.Client(wClient.ConnectionId).updateNetClients();
                 }
             });
-          
+
 
         }
 
@@ -117,7 +117,7 @@ namespace SPWSAppDeploymentAPINETFX.Hubs
             return base.OnDisconnected(stopCalled);
         }
 
-        public void CloseApp(int[] ClientIds,string serverName,int appId)
+        public void CloseApp(int[] ClientIds, string serverName, int appId)
         {
             string IPAddress = "";
             if (serverName == "DevServer")
@@ -133,7 +133,7 @@ namespace SPWSAppDeploymentAPINETFX.Hubs
             foreach (var Id in ClientIds)
             {
                 var client = sClients.FirstOrDefault(sc => sc.ClientProfileId == Id);
-                Clients.Client(client.ConnectionId).closeApp(serverName,app.AppName);
+                Clients.Client(client.ConnectionId).closeApp(serverName, app.AppName);
             }
         }
 
@@ -162,11 +162,29 @@ namespace SPWSAppDeploymentAPINETFX.Hubs
             foreach (var Id in ClientIds)
             {
                 var client = sClients.FirstOrDefault(sc => sc.ClientProfileId == Id);
-                Clients.Client(client.ConnectionId).install(serverName,Newtonsoft.Json.JsonConvert.SerializeObject(app));
+                Clients.Client(client.ConnectionId).install(serverName, Newtonsoft.Json.JsonConvert.SerializeObject(app));
             }
         }
 
-
+        public void UninstallApp(int[] ClientIds, string serverName, int appId)
+        {
+            string IPAddress = "";
+            if (serverName == "DevServer")
+            {
+                IPAddress = "172.17.147.86";
+            }
+            else if (serverName == "ACSServer")
+            {
+                IPAddress = "172.17.147.71";
+            }
+            var si = ServerInstance.serverInstances.FirstOrDefault(s => s.IPAddress == IPAddress);
+            var app = si.lApps.FirstOrDefault(a => a.AppId == appId);
+            foreach (var Id in ClientIds)
+            {
+                var client = sClients.FirstOrDefault(sc => sc.ClientProfileId == Id);
+                Clients.Client(client.ConnectionId).uninstall(serverName, Newtonsoft.Json.JsonConvert.SerializeObject(app));
+            }
+        }
 
         public class SClient
         {
@@ -184,7 +202,6 @@ namespace SPWSAppDeploymentAPINETFX.Hubs
             Sent = 2,
             Error = 3,
             Success = 4
-
         }
 
         public class ServerRequest
