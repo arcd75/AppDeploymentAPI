@@ -152,16 +152,18 @@
         </a>
         <div data-bind="css: {hidden : !$root.GroupClientControlsVisibility()}">
             <p>Details</p>
-            <!--ko if: SelectedClientProfile-->
-            <!--ko using: SelectedClientProfile -->
-            <!--ko foreach: MemberDetails-->
-            <div class="form-group">
-                <label data-bind="text: ColumnName"></label>
-                <input type="text" readonly data-bind="value: Value" class="form-control" />
+            <div style="max-height:50vh; overflow-x: auto;">
+                <!--ko if: SelectedClientProfile-->
+                <!--ko using: SelectedClientProfile -->
+                <!--ko foreach: MemberDetails-->
+                <div class="form-group">
+                    <label data-bind="text: ColumnName"></label>
+                    <input type="text" readonly data-bind="value: Value" class="form-control" />
+                </div>
+                <!--/ko-->
+                <!--/ko-->
+                <!--/ko-->
             </div>
-            <!--/ko-->
-            <!--/ko-->
-            <!--/ko-->
         </div>
         
 

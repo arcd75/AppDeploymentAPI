@@ -23,12 +23,17 @@ function Client(ConnectionId, HostName, IPAddress) {
                         //var processedText = data.responseText.replaceAll("\\", "");
                         //processedText = processedText.replaceAll("\"", '"');
                         //processedText = processedText.trim('\'');
-                        var parsedData = JSON.parse(data.responseText);
-                        parsedData = JSON.parse(parsedData);
-                        for (var i = 0; i < parsedData.length; i++) {
-                            var currentData = parsedData[i];
-                            var task = new Task(currentData.ImageName, currentData.PID, currentData.MemUsage);
-                            viewModel.Tasks.push(task);
+                        try {
+                            var parsedData = JSON.parse(data.responseText);
+                            parsedData = JSON.parse(parsedData);
+                            for (var i = 0; i < parsedData.length; i++) {
+                                var currentData = parsedData[i];
+                                var task = new Task(currentData.ImageName, currentData.PID, currentData.MemUsage);
+                                viewModel.Tasks.push(task);
+                            }
+                        } catch (e) {
+                            console.log(e);
+                            alertify.warning(self.HostName() + " is Offline");
                         }
                         viewModel.SelectedClient(self);
                     }

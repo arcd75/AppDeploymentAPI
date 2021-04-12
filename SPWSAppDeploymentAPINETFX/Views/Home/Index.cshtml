@@ -51,8 +51,8 @@
                 @*<p>ConnectionId</p>*@
             </div>
         </div>
-        <div data-bind="foreach: Tasks" class="row">
-            <div class="row">
+        <div data-bind="foreach: Tasks" class="row" style="max-height: 60vh; overflow-x: hidden; overflow-y: auto;">
+            <div class="row" >
                 <div class="col-md-3">
                     <p data-bind="text: ImageName"></p>
                 </div>
