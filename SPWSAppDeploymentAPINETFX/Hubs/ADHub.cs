@@ -186,6 +186,35 @@ namespace SPWSAppDeploymentAPINETFX.Hubs
             }
         }
 
+        public void ApplicationRecord(string server,string data, bool Uninstall = false) {
+            data = Newtonsoft.Json.JsonConvert.DeserializeObject(data).ToString();
+            if (!string.IsNullOrEmpty(data))
+            {
+                SystemInstallationRecord record = Newtonsoft.Json.JsonConvert.DeserializeObject<SystemInstallationRecord>(data);
+                using (var context = new ADContext())
+                {
+                    int serverId = context.ServerProfiles.FirstOrDefault(x => x.ServerName.Equals(server)).ServerId; 
+                    var result = context.SystemInstallationRecords.FirstOrDefault(x => x.MachineName.Equals(record.MachineName) && x.AppId == record.AppId && x.ClientProfileId == record.ClientProfileId && x.ServerId == serverId);
+                    if (result != null)
+                    {
+                        if (Uninstall)
+                        {
+                            context.SystemInstallationRecords.Remove(result);
+                        }
+                        else {
+                            result.Version = record.Version;
+                            result.LastUpdated = record.LastUpdated;
+                        }
+                    }
+                    else if(!Uninstall) {
+                        record.ServerId = serverId;
+                        context.SystemInstallationRecords.Add(record);
+                    }
+                    context.SaveChanges();
+                }
+            }
+        }
+
         public class SClient
         {
             public string ConnectionId { get; set; }
