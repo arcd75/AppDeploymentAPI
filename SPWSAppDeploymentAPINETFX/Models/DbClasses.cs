@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
@@ -112,6 +113,20 @@ namespace SPWSAppDeploymentAPINETFX.Models
         public string IPAddress { get; set; }
         public DateTime LastUpdated { get; set; }
         public int ClientProfileId { get; set; }
+        [NotMapped]
+        public string AppName
+        {
+            get
+            {
+                using (var context = new ADContext())
+                {
+                    var server = context.ServerProfiles.FirstOrDefault(x => x.ServerId == ServerId);
+                    var instance = ServerInstance.serverInstances.FirstOrDefault(s => s.IPAddress.Equals(server.IPAddress));
+                    return instance.lApps.FirstOrDefault(x => x.AppId == AppId).AppName;
+                }
+            }
+            set => AppName = value;
+        }
         public static List<SystemInstallationRecord> local;
         public static Task ReloadLocal()
         {
