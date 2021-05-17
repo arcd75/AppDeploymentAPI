@@ -186,6 +186,15 @@ namespace SPWSAppDeploymentAPINETFX.Hubs
             }
         }
 
+        public void UpdateApp() {
+            foreach (SClient item in sClients)
+            {
+                if (string.IsNullOrEmpty(item.ConnectionId)) {
+                    Clients.Client(item.ConnectionId).update();
+                }
+            }
+        }
+
         public void ApplicationRecord(string server,string data, bool Uninstall = false) {
             data = Newtonsoft.Json.JsonConvert.DeserializeObject(data).ToString();
             if (!string.IsNullOrEmpty(data))
