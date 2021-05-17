@@ -133,6 +133,7 @@ namespace SPWSAppDeploymentAPINETFX.Controllers
         }
 
         [Route("Apps/GetFile/{ServerName}/{AppFileId}")]
+        [HttpGet]
         public string GetFile(string ServerName, int AppFileId)
         {
             string result = "";
