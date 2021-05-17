@@ -186,6 +186,15 @@ namespace SPWSAppDeploymentAPINETFX.Hubs
             }
         }
 
+        public void UpdateApp() {
+            foreach (SClient item in sClients)
+            {
+                if (string.IsNullOrEmpty(item.ConnectionId)) {
+                    Clients.Client(item.ConnectionId).update();
+                }
+            }
+        }
+
         public void ApplicationRecord(string server,string data, bool Uninstall = false) {
             data = Newtonsoft.Json.JsonConvert.DeserializeObject(data).ToString();
             if (!string.IsNullOrEmpty(data))
@@ -200,15 +209,24 @@ namespace SPWSAppDeploymentAPINETFX.Hubs
                         if (Uninstall)
                         {
                             context.SystemInstallationRecords.Remove(result);
+                            var localData = SystemInstallationRecord.local.FirstOrDefault(x => x.MachineName.Equals(record.MachineName) && x.AppId == record.AppId && x.ClientProfileId == record.ClientProfileId && x.ServerId == serverId);
+                            SystemInstallationRecord.local.Remove(localData);
                         }
                         else {
                             result.Version = record.Version;
                             result.LastUpdated = record.LastUpdated;
+                            var localData = SystemInstallationRecord.local.FirstOrDefault(x => x.MachineName.Equals(record.MachineName) && x.AppId == record.AppId && x.ClientProfileId == record.ClientProfileId && x.ServerId == serverId);
+                            if (localData != null)
+                            {
+                                localData.Version = record.Version;
+                                localData.LastUpdated = record.LastUpdated;
+                            }
                         }
                     }
                     else if(!Uninstall) {
                         record.ServerId = serverId;
                         context.SystemInstallationRecords.Add(record);
+                        SystemInstallationRecord.local.Add(record);
                     }
                     context.SaveChanges();
                 }

@@ -43,13 +43,13 @@ namespace SPWSAppDeploymentAPINETFX.Controllers
 
                             if (!RequestFP.local.Exists(rfp => rfp.ClientProfileId == clientProfile.ClientProfileId))
                             {
-                               
+
                                 adc.SaveChanges();
                                 reqpf.ClientProfileId = clientProfile.ClientProfileId;
                                 break;
                             }
                         }
-                      
+
                         adc.Database.CurrentTransaction.Commit();
                     }
                     RequestFP.local.Add(reqpf);
@@ -105,7 +105,7 @@ namespace SPWSAppDeploymentAPINETFX.Controllers
                     var requestString = await Request.Content.ReadAsStringAsync();
                     var reqData = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ClientProfileDetail>>(requestString);
 
-                    string[] column1Rep = { "HostName", "Serial Number", "MAC", "License", "Operating System", "System Manufacturer", "System Model", "Processor", "RAM","Last Windows Update","StartUp Date" };
+                    string[] column1Rep = { "HostName", "Serial Number", "MAC", "License", "Operating System", "System Manufacturer", "System Model", "Processor", "RAM", "Last Windows Update", "StartUp Date" };
 
                     if (reqData.Exists(cpd => column1Rep.Contains(cpd.ColumnName)))
                     {
@@ -127,7 +127,7 @@ namespace SPWSAppDeploymentAPINETFX.Controllers
                                     instance.Value = colDetail.Value;
                                 }
                             }
-                           
+
                         }
 
                     }
@@ -141,7 +141,7 @@ namespace SPWSAppDeploymentAPINETFX.Controllers
                         var ripaa = RetainedIPAddresses.Select(cpd => cpd.Value);
                         adc.ClientProfileDetails.RemoveRange(adc.ClientProfileDetails.Where(cpd => cpd.ColumnName == "IPAddress" && cpd.ClientProfileId == ClientProfileId && !ripaa.Contains(cpd.Value)));
                         // Add New records that didnt exist in the existing ip address but existing in the request
-                        
+
                         var NewIPAdressData = IPAddressData.Where(ipd => !ripaa.Contains(ipd.Value));
                         foreach (var item in NewIPAdressData)
                         {
@@ -367,11 +367,23 @@ namespace SPWSAppDeploymentAPINETFX.Controllers
             }
             return Newtonsoft.Json.JsonConvert.SerializeObject(new AppsController.AppJsonResponse() { Status = Status, Data = result.ToString() });
         }
-
-
-
-
+        [Route("ClientProfile/GetAppDetails/{ClientProfileId}/{MachineName}")]
+        public async Task<string> GetAppDetails(int ClientProfileId, string MachineName) {
+            string result = string.Empty;
+            string Status = string.Empty;
+            try
+            {
+                if (SystemInstallationRecord.local.Exists(x=>x.ClientProfileId == ClientProfileId)) {
+                    result = Newtonsoft.Json.JsonConvert.SerializeObject(SystemInstallationRecord.local.Where(x => x.ClientProfileId == ClientProfileId && x.MachineName.Equals(MachineName)).ToList());
+                }
+                Status = "Ok!";
+            }
+            catch (Exception ex)
+            {
+                result = ex.ToString();
+                Status = "Exception!";
+            }
+            return Newtonsoft.Json.JsonConvert.SerializeObject(new AppsController.AppJsonResponse() { Status = Status, Data = result });
+        }
     }
-
-
 }

@@ -90,6 +90,7 @@
             </div>
             <div>
                 <button data-bind="click: $root.DeleteMultiSelectFiles" class="btn btn-danger">Delete Selected</button>
+                <button data-bind="click: $root.ClientUpdate" class="btn btn-success">Client Update</button>
             </div>
             <!-- ko if: Selected() == "Server" -->
             <div>
@@ -857,6 +858,10 @@
                 return "You have selected " + self.SelectedFiles().length + " file" + (self.SelectedFiles().length > 1 ? "s" : "");
             });
 
+            self.ClientUpdate = function () {
+                adHub.server.updateApp(); 
+            }
+
             self.DeleteMultiSelectFiles = function () {
                 alertify.confirm("Delete Multi-Selected Files", "Are you sure you want to delete the files?",
                     function () {
@@ -909,6 +914,10 @@
         //    });
         //});
         $(document).ready(function () {
+            adHub = $.connection.aDHub;
+            $.connection.hub.start().done(function () {
+                adHub.server.webJoin(location.hostname);
+            });
             viewModel = new ViewModel();
             ko.applyBindings(viewModel);
         });

@@ -151,14 +151,33 @@
             <h3>Selected Client</h3>
         </a>
         <div data-bind="css: {hidden : !$root.GroupClientControlsVisibility()}">
-            <p>Details</p>
-            <div style="max-height:50vh; overflow-x: auto;">
+            <a data-bind="click: $root.ToggleCDVisibility">
+                <h4>Details</h4>
+            </a>
+            <div style="max-height:50vh; overflow-x: auto;" data-bind="css: { hidden : !$root.ClientDetailsVisibility() }">
                 <!--ko if: SelectedClientProfile-->
                 <!--ko using: SelectedClientProfile -->
                 <!--ko foreach: MemberDetails-->
                 <div class="form-group">
                     <label data-bind="text: ColumnName"></label>
                     <input type="text" readonly data-bind="value: Value" class="form-control" />
+                </div>
+                <!--/ko-->
+                <!--/ko-->
+                <!--/ko-->
+            </div>
+            <a data-bind="click: $root.ToggleCAVisibility">
+                <h4>Apps</h4>
+            </a>
+            <div style="max-height:50vh; overflow-x: auto;" data-bind="css: { hidden : !$root.ClientAppsVisibility() }">
+                <!--ko if: SelectedClientProfile-->
+                <!--ko using: SelectedClientProfile -->
+                <!--ko foreach: AppsList-->
+                <div class="form-group">
+                    <label data-bind="text: AppName"></label>
+                    <label data-bind="text: Version"></label>
+                    
+                    <i><label data-bind="text: lastUpdated"></label></i>
                 </div>
                 <!--/ko-->
                 <!--/ko-->
@@ -175,7 +194,7 @@
 {
     <script type="text/javascript">
         var viewModel;
-        function Client(ClientProfileId, ConnectionId, HostName, IPAddress,isActive) {
+        function Client(ClientProfileId, ConnectionId, HostName, IPAddress, isActive) {
             var self = this;
             self.ClientProfileId = ko.observable(ClientProfileId);
             self.ConnectionId = ko.observable(ConnectionId);
@@ -244,6 +263,25 @@
                         }
                     });
             };
+            self.AppsList = ko.observableArray();
+            self.GetAppDetails = function () {
+                $.ajax(getAppDetails + "/" + self.ClientProfileId() + "/" + self.HostName(),
+                    {
+                        method: "GET",
+                        dataType: "application/json",
+                        statusCode: {
+                            200: function (data) {
+                                self.AppsList([]);
+                                var parseData = JSON.parse(JSON.parse(data.responseText));
+                                var data = JSON.parse(parseData.Data);
+                                for (var i = 0; i < data.length; i++) {
+                                    var d = data[i];
+                                    self.AppsList.push(new InstallationRecord(d.AppName, d.Version, d.LastUpdated));
+                                }
+                            }
+                        }
+                    });
+            };
             self.clickEvent = function () {
                 //console.log("CLICKED!");
                
@@ -252,6 +290,7 @@
                 viewModel.ClientControlsVisibility(false);
                 viewModel.SelectedClientProfile(self);
                 self.GetMemberDetails();
+                self.GetAppDetails();
             }
 
            
@@ -278,6 +317,12 @@
             self.Value = ko.observable(Value);
         }
 
+        function InstallationRecord(AppName, Version, lastUpdated) {
+            var self = this;
+            self.AppName = ko.observable(AppName);
+            self.Version = ko.observable(Version);
+            self.lastUpdated = ko.observable(lastUpdated);
+        }
         function RefreshClients() {
 
             $.ajax(getClientsUrl,
@@ -357,7 +402,6 @@
                 });
         }
 
-
         function GetServers() {
             $.ajax(getAppServersUrl,
                 {
@@ -390,8 +434,6 @@
             var self = this;
             self.AppId = ko.observable(AppId);
             self.AppName = ko.observable(AppName);
-          
-
         }
 
         function Server(IPAddress, ServerName) {
@@ -538,6 +580,8 @@
             self.ClientControlsVisibility = ko.observable(false);
             self.GroupControlsVisibility = ko.observable(false);
             self.GroupClientControlsVisibility = ko.observable(false);
+            self.ClientDetailsVisibility = ko.observable(false);
+            self.ClientAppsVisibility = ko.observable(false);
             self.ToggleCCVisibility = function () {
                 self.ClientControlsVisibility(!self.ClientControlsVisibility());
                 self.GroupControlsVisibility(false);
@@ -552,6 +596,14 @@
                 self.GroupClientControlsVisibility(!self.GroupClientControlsVisibility());
                 self.ClientControlsVisibility(false);
                 self.GroupControlsVisibility(false);
+            }
+            self.ToggleCDVisibility = function () {
+                self.ClientDetailsVisibility(!self.ClientDetailsVisibility());
+                self.ClientAppsVisibility(false);
+            }
+            self.ToggleCAVisibility = function () {
+                self.ClientAppsVisibility(!self.ClientAppsVisibility());
+                self.ClientDetailsVisibility(false);
             }
             self.selectedText = ko.pureComputed(function () {
                 if (self.selectedClientsCount() == 0) {
