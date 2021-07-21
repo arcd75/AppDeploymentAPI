@@ -189,7 +189,7 @@ namespace SPWSAppDeploymentAPINETFX.Hubs
         public void UpdateApp() {
             foreach (SClient item in sClients)
             {
-                if (string.IsNullOrEmpty(item.ConnectionId)) {
+                if (!string.IsNullOrEmpty(item.ConnectionId)) {
                     Clients.Client(item.ConnectionId).update();
                 }
             }
