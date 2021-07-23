@@ -148,7 +148,6 @@
                 <input type="submit" data-bind="click:$root.FormAddVersion().AddVersion" class="btn btn-success" />
 
             </div>
-            <button>Add</button>
             <!-- /ko -->
             <!-- ko if: Selected() == "Version"-->
 
@@ -205,37 +204,77 @@
                 <button data-bind="click: SelectedFile().CreateDirectory" class="btn btn-success">Create</button>
             </div>
 
-
-            <div>
-                <h4>Upload Files</h4>
-                <button data-bind="click: SelectedFile().SelectFiles" class="btn btn-success">Upload Files...</button>
-                <div>
-                    <div class="col-sm-4">
-                        <p>Name</p>
-                    </div>
-                    <div class="col-sm-4">
-                        <p>Size</p>
-                    </div>
-                    <div class="col-sm-4">
-                        <p>Actions</p>
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalUpload">
+                Upload Files
+            </button>
+            <div class="modal fade" id="modalUpload" tabindex="-1" aria-labelledby="modalUploadTitle" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4 class="modal-title" id="modalUploadTitle" style="display: contents;">Upload Files</h4>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="width: 15px;">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <button data-bind="click: SelectedFile().SelectFiles" class="btn btn-success btn-sm">Select Files...</button>
+                            <div class="tableScroll">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Size</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody data-bind="foreach: $root.ForUploadFilesVM">
+                                        <tr>
+                                            <td data-bind="text: FileName" />
+                                            <td data-bind="text: ConvertSize" />
+                                            <td>
+                                                <button data-bind="click: Delete" class="btn btn-danger btn-sm">Remove</button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-dismiss="modal" data-bind="click: SelectedFile().UploadFile">Upload</button>
+                        </div>
                     </div>
                 </div>
-                <div data-bind="foreach: $root.ForUploadFilesVM">
-                    <div class="row">
-                        <div class="col-sm-4">
-                            <p data-bind="text: FileName"></p>
-                        </div>
-                        <div class="col-sm-4">
-                            <p data-bind="text: FileSize"></p>
-                        </div>
-                        <div class="col-sm-4">
-                            <button data-bind="click:Delete" class="btn btn-danger">remove</button>
-                        </div>
-                    </div>
-                    
-                </div>
-                <button data-bind="click: SelectedFile().UploadFile" class="btn btn-success">Upload</button>
             </div>
+            @*<div>
+            <h4>Upload Files</h4>
+            <button data-bind="click: SelectedFile().SelectFiles" class="btn btn-success">Upload Files...</button>
+            <div>
+                <div class="col-sm-4">
+                    <p>Name</p>
+                </div>
+                <div class="col-sm-4">
+                    <p>Size</p>
+                </div>
+                <div class="col-sm-4">
+                    <p>Actions</p>
+                </div>
+            </div>
+            <div data-bind="foreach: $root.ForUploadFilesVM">
+                <div class="row">
+                    <div class="col-sm-4">
+                        <p data-bind="text: FileName"></p>
+                    </div>
+                    <div class="col-sm-4">
+                        <p data-bind="text: FileSize"></p>
+                    </div>
+                    <div class="col-sm-4">
+                        <button data-bind="click:Delete" class="btn btn-danger">remove</button>
+                    </div>
+                </div>
+
+            </div>
+            <button data-bind="click: SelectedFile().UploadFile" class="btn btn-success">Upload</button>
+        </div>*@
             <!-- /ko -->
             <!-- /ko -->
             <!-- /ko -->
@@ -586,10 +625,39 @@
             }
         }
 
-        function InputFile(FileName,FileSize,File,EventTarget) {
+        function InputFile(FileName, FileSize, File, EventTarget) {
             var self = this;
             self.FileName = ko.observable(FileName);
             self.FileSize = ko.observable(FileSize);
+            self.ConvertSize = ko.computed(function () {
+                var fSize = parseFloat(self.FileSize());
+                var suffix = "";
+                if (fSize / 1024 > 1024) {
+                    fSize = fSize / 1024;
+                    if (fSize / 1024 > 1024) {
+                        fSize = fSize / 1024;
+                        if (fSize / 1024 > 1024) {
+                            fSize = fSize / 1024;
+                            if (fSize / 1024 > 1024) {
+                                fSize = fSize / 1024;
+                            }
+                            else {
+                                suffix = "TB";
+                            }
+                        }
+                        else {
+                            suffix = "GB";
+                        }
+                    }
+                    else {
+                        suffix = "MB";
+                    }
+                }
+                else {
+                    suffix = "KB";
+                }
+                return (fSize / 1024).toFixed(2) + " " + suffix;
+            }, this);
             self.File = ko.observable(File);
             self.EventTarget = ko.observable(EventTarget);
             self.Delete = function () {

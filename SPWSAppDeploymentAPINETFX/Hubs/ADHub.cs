@@ -15,7 +15,7 @@ namespace SPWSAppDeploymentAPINETFX.Hubs
         public static List<ServerRequest> sRequest;
 
 
-        public void Join(int ClientProfileId)
+        public void Join(int ClientProfileId, string connectionid)
         {
             if (sClients == null)
             {
@@ -24,7 +24,7 @@ namespace SPWSAppDeploymentAPINETFX.Hubs
             if (sClients.Exists(sc => sc.ClientProfileId == ClientProfileId))
             {
                 var client = sClients.FirstOrDefault(sc => sc.ClientProfileId == ClientProfileId);
-                client.ConnectionId = Context.ConnectionId;
+                client.ConnectionId = connectionid;
                 client.isActive = true;
 
             }
@@ -33,13 +33,13 @@ namespace SPWSAppDeploymentAPINETFX.Hubs
                 sClients.Add(new SClient()
                 {
                     ClientProfileId = ClientProfileId,
-                    ConnectionId = Context.ConnectionId,
+                    ConnectionId = connectionid,
                     isActive = true,
                 });
                 Clients.Client(Context.ConnectionId).RequestNetworkData();
             }
 
-            Clients.Client(Context.ConnectionId).message("You have connected to server!");
+            Clients.Client(Context.ConnectionId).message();
             foreach (var wClient in wClients)
             {
                 Clients.Client(wClient.ConnectionId).updateNetClients();
@@ -75,6 +75,7 @@ namespace SPWSAppDeploymentAPINETFX.Hubs
             }
         }
 
+
         public async Task UpdateRequest(int RequestId, ServerRequestStatus status, string Data)
         {
             await Task.Factory.StartNew(() =>
@@ -108,13 +109,28 @@ namespace SPWSAppDeploymentAPINETFX.Hubs
         {
             if (sClients.Exists(sc => sc.ConnectionId == Context.ConnectionId))
             {
-                sClients.FirstOrDefault(sc => sc.ConnectionId == Context.ConnectionId).isActive = false;
+                var cl = sClients.FirstOrDefault(sc => sc.ConnectionId == Context.ConnectionId);
+                cl.isActive = false;
+                cl.ConnectionId = "";
             }
             foreach (var wClient in wClients)
             {
                 Clients.Client(wClient.ConnectionId).updateNetClients();
             }
             return base.OnDisconnected(stopCalled);
+        }
+
+        public override Task OnReconnected()
+        {
+            Console.WriteLine(Context.ConnectionId);
+            Clients.Client(Context.ConnectionId).connected(Context.ConnectionId);
+            return base.OnReconnected();
+        }
+        public override Task OnConnected()
+        {
+            Console.WriteLine(Context.ConnectionId);
+            Clients.Client(Context.ConnectionId).connected(Context.ConnectionId);
+            return base.OnConnected();
         }
 
         public void CloseApp(int[] ClientIds, string serverName, int appId)

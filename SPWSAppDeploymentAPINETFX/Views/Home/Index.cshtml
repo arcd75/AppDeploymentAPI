@@ -1,71 +1,63 @@
-﻿
-<div class="row">
-    <div class="col-md-4">
-        <div class="row">
-            <p>Clients</p>
-        </div>
-        <div class="row">
-            <div class="col-md-4">
-                <p>HostName</p>
-            </div>
-            <div class="col-md-4">
-                <p>ConnectionId</p>
-            </div>
-        </div>
-
-        <div data-bind="foreach: Clients">
+﻿<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-6">
+            <h5>Clients</h5>
             <div class="row">
                 <div class="col-md-4">
-                    <p data-bind="text: HostName"></p>
+                    <p>HostName</p>
                 </div>
+                <div class="col-md-5">
+                    <p>ConnectionId</p>
+                </div>
+            </div>
+
+            <div data-bind="foreach: Clients">
+                <div class="row">
+                    <div class="col-md-4">
+                        <p data-bind="text: HostName"></p>
+                    </div>
+                    <div class="col-md-5">
+                        <p data-bind="text: ConnectionId"></p>
+                    </div>
+                    <div class="col-md-3">
+                        <button data-bind="click: GetTasks">
+                            Get Tasks
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="row">
+                <p>Tasks</p>
+            </div>
+            <div class="row">
                 <div class="col-md-4">
-                    <p data-bind="text: ConnectionId"></p>
+                    <p>ImageName</p>
                 </div>
-                <div class="col-md-4">
-                    <button data-bind="click: GetTasks">
-                        Get Tasks
-                    </button>
-                </div>
-            </div>
-        </div>
-
-
-
-
-    </div>
-    <div class="col-md-4">
-        <div class="row">
-            <p>Tasks</p>
-        </div>
-        <div class="row">
-            <div class="col-md-3">
-                <p>ImageName</p>
-            </div>
-            <div class="col-md-3">
-                <p>PID</p>
-            </div>
-            <div class="col-md-3">
-                <p>MemUsage</p>
-            </div>
-            <div class="col-md-3">
-                @*<p>ConnectionId</p>*@
-            </div>
-        </div>
-        <div data-bind="foreach: Tasks" class="row" style="max-height: 60vh; overflow-x: hidden; overflow-y: auto;">
-            <div class="row" >
-                <div class="col-md-3">
-                    <p data-bind="text: ImageName"></p>
+                <div class="col-md-2">
+                    <p>PID</p>
                 </div>
                 <div class="col-md-3">
-                    <p data-bind="text: PID"></p>
+                    <p>MemUsage</p>
                 </div>
-                <div class="col-md-3">
-                    <p data-bind="text: MemUsage"></p>
-                </div>
-                <div class="col-md-3">
-                    <button data-bind="click: KillTask">
-                        Kill Task
-                    </button>
+            </div>
+            <div data-bind="foreach: Tasks" class="row" style="max-height: 60vh; overflow-x: hidden; overflow-y: auto;">
+                <div class="row">
+                    <div class="col-md-4">
+                        <p data-bind="text: ImageName"></p>
+                    </div>
+                    <div class="col-md-2">
+                        <p data-bind="text: PID"></p>
+                    </div>
+                    <div class="col-md-3">
+                        <p data-bind="text: MemUsage"></p>
+                    </div>
+                    <div class="col-md-3">
+                        <button data-bind="click: KillTask">
+                            Kill Task
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

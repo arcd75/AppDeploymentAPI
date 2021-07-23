@@ -10,10 +10,11 @@
         }
     </style>
     @Styles.Render("~/Content/css")
+    <link rel="stylesheet" href="~/Content/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href='@Url.Content("~/Content/fontawesome/css/all.min.css")' />
-    <link rel="stylesheet" href="@Url.Content("~/Content/alertify/css/alertify.min.css")"/>
+    <link rel="stylesheet" href="@Url.Content("~/Content/alertify/css/alertify.min.css")" />
     @Scripts.Render("~/bundles/modernizr")
-    
+
     <script>
         var getClientsUrl = '@Url.Action("GetClients","AD")';
         var getClientTaskUrl = '@Url.Action("GetClientTask","AD")';
@@ -37,6 +38,7 @@
         var getGroupMembers = '@Url.Action("GetMembers","ClientProfile")';
         var getMemberDetails = '@Url.Action("GetMemberDetails","ClientProfile")';
         var getAppDetails = '@Url.Action("GetAppDetails","ClientProfile")';
+        var restartClientConn = '@Url.Action("RestartHubCon","ClientProfile")'
     </script>
     <script>
 
@@ -69,11 +71,11 @@
             </div>
         </div>
     </div>
-    <div class="container body-content">
+    <div class="container-fluid body-content">
         @RenderBody()
         <footer>
             <hr />
-            <p>&copy; @DateTime.Now.Year - SPWS IT</p>
+            <p>&copy; @DateTime.Now.Year - Sumi Philippines Wiring Systems Corp. | Information Technology</p>
         </footer>
     </div>
 

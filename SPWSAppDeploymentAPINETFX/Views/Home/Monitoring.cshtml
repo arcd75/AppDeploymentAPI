@@ -10,186 +10,188 @@
         color: red;
     }
 </style>
-<div class="row">
-    <h2>Header / Sorting / Filter</h2>
-</div>
-<div class="row">
-    <div class="col-md-8">
-        <h2>Groups</h2>
-        <div data-bind="foreach: ClientProfileGroup">
-            <div>
-                <div class="row">
-                    <div class="col-sm-11">
-                        <a data-bind="text: Name,
+<div class="container-fluid">
+    <div class="row">
+        <h2>Header / Sorting / Filter</h2>
+    </div>
+    <div class="row">
+        <div class="col-md-8">
+            <h2>Groups</h2>
+            <div data-bind="foreach: ClientProfileGroup">
+                <div>
+                    <div class="row">
+                        <div class="col-sm-11">
+                            <a data-bind="text: Name,
                            click: selectGroup"></a>
 
-                    </div>
-                    <div class="col-sm-1">
-                        <a data-bind="
+                        </div>
+                        <div class="col-sm-1">
+                            <a data-bind="
                        text: LinkText,
                        click: ToggleVisibility"></a>
+                        </div>
                     </div>
+                    <div data-bind="css: {hidden: !isVisible}, foreach: GroupClients">
+                        <!--ko using: Client-->
+                        <a data-bind="class: Style,click: clickEvent">
+                            <span data-bind="text: HostName"></span>
+                        </a>
+                        <!--/ko-->
+                    </div>
+
                 </div>
-                <div data-bind="css: {hidden: !isVisible}, foreach: GroupClients" >
-                   <!--ko using: Client-->
-                   <a data-bind="class: Style,click: clickEvent">
-                       <span data-bind="text: HostName"></span>
-                   </a>
-                    <!--/ko-->
-                </div>
-                
+
+
+
+
             </div>
-            
-
-
-
-        </div>
-        <h2>Clients</h2>
-        <div data-bind="foreach: Clients">
-            <div class="col-md-3 ">
-                <div class="form-group">
-                    <input type="checkbox" data-bind="
+            <h2>Clients</h2>
+            <div data-bind="foreach: Clients">
+                <div class="col-md-3 ">
+                    <div class="form-group">
+                        <input type="checkbox" data-bind="
                        checkedValue : $data,
                        checked: $root.selectedClients,
-                     "  />
-                    <label data-bind="text: HostName"></label>
-                </div>
-                
+                     " />
+                        <label data-bind="text: HostName"></label>
+                    </div>
 
+
+                </div>
             </div>
         </div>
-    </div>
-    <div class="col-md-4">
-        <h2>Controls</h2>
-        <a data-bind="click: $root.ToggleCCVisibility">
-            <h3>Client </h3>
-        </a>
+        <div class="col-md-4">
+            <h2>Controls</h2>
+            <a data-bind="click: $root.ToggleCCVisibility">
+                <h3>Client </h3>
+            </a>
 
-        <div data-bind="css: { hidden : !$root.ClientControlsVisibility() }">
-            <p data-bind="text:selectedText"></p>
-            <!--ko if: $root.selectedClients().length > 0-->
-            <div class="form-group">
-                <label>Add to Group: </label>
-                <select class="form-control" data-bind="
+            <div data-bind="css: { hidden : !$root.ClientControlsVisibility() }">
+                <p data-bind="text:selectedText"></p>
+                <!--ko if: $root.selectedClients().length > 0-->
+                <div class="form-group">
+                    <label>Add to Group: </label>
+                    <select class="form-control" data-bind="
                         value: $root.AGSelectedGroup,
                         options: ClientProfileGroup,
                         optionsText : 'Name',
                         optionsValue: $data,
                         optionsCaption: '---Select Group---'">
-                </select>
-                <button data-bind="click: addClientsToGroup, attr:{ disabled: typeof $root.AGSelectedGroup() == 'undefined'}" class="btn btn-success">Submit</button>
-            </div>
-            <h4>Install/Uninstall/Close apps</h4>
-            <div class="form-group">
-                <label>Server</label>
-                <select class="form-control" data-bind="
+                    </select>
+                    <button data-bind="click: addClientsToGroup, attr:{ disabled: typeof $root.AGSelectedGroup() == 'undefined'}" class="btn btn-success">Submit</button>
+                </div>
+                <h4>Install/Uninstall/Close apps</h4>
+                <div class="form-group">
+                    <label>Server</label>
+                    <select class="form-control" data-bind="
                         value: $root.SelectedServer,
                         options: $root.Servers,
                         optionsText: 'ServerName',
                         optionsCaption: '---Select Server---',
                         ">
-                </select>
-            </div>
-            <!--ko if: typeof $root.SelectedServer() != 'undefined' -->
-            <div class="form-group">
-                <label>App</label>
-                <select class="form-control" data-bind="value: $root.SelectedApp,
+                    </select>
+                </div>
+                <!--ko if: typeof $root.SelectedServer() != 'undefined' -->
+                <div class="form-group">
+                    <label>App</label>
+                    <select class="form-control" data-bind="value: $root.SelectedApp,
                         options: $root.SelectedServer().Apps(),
                         optionsValue: $data,
                         optionsText: 'AppName',
                         optionsCaption: '---Select App---'
                         ">
-                </select>
-                <div class="btn-group">
-                    <button data-bind="attr: {disabled: typeof $root.SelectedApp() == 'undefined'},
-                            click : $root.InstallApp" class="btn btn-success">Install</button>
-                    <button data-bind="attr: {disabled: typeof $root.SelectedApp() == 'undefined'},
-                            click : $root.UninstallApp" class="btn btn-danger">Uninstall</button>
-                    <button data-bind="attr: {disabled: typeof $root.SelectedApp() == 'undefined'},
+                    </select>
+                    <div class="btn-group">
+                        <button data-bind="attr: {disabled: typeof $root.SelectedApp() == 'undefined'},
+                            click : $root.InstallApp" class="btn btn-success">
+                            Install
+                        </button>
+                        <button data-bind="attr: {disabled: typeof $root.SelectedApp() == 'undefined'},
+                            click : $root.UninstallApp" class="btn btn-danger">
+                            Uninstall
+                        </button>
+                        <button data-bind="attr: {disabled: typeof $root.SelectedApp() == 'undefined'},
                             click: $root.CloseApp" class="btn btn-primary">
-                        Close App
+                            Close App
+                        </button>
+                    </div>
+
+                </div>
+
+                <!--/ko-->
+                <div class="form-group">
+                    <button class="btn btn-danger" data-bind="
+                            click: $root.PushUpdates">
+                        Push Updates
                     </button>
                 </div>
 
-            </div>
 
-            <!--/ko-->
-            <div class="form-group">
-                <button class="btn btn-danger" data-bind="
-                            click: $root.PushUpdates">
-                    Push Updates
-                </button>
+                <!--/ko-->
             </div>
 
 
-            <!--/ko-->
-        </div>
-       
-
-        <a data-bind="click: $root.ToggleGCVisibility">
-            <h3>
-                Group
-            </h3>
-        </a>
-        <div data-bind="css: { hidden: !$root.GroupControlsVisibility()}">
-            <h4>Add Group</h4>
-            <div>
-                <div class="form-group">
-                    <label for="GCAGName">Group Name:</label>
-                    <input type="text" data-bind="value: $root.addGroupText" />
-                    <input type="submit" data-bind="click: $root.addGroup" />
-                </div>
-            </div>
-            <!--ko if: typeof $root.SelectedGroup() != 'undefined' -->
-            <h4>Selected Group</h4>
-            <p data-bind="text: $root.SelectedGroup().Name"></p>
-            <button data-bind="click: $root.SelectedGroup().SelectClients" class="btn btn-primary"> Select Clients</button>
-            <!--/ko-->
-       
-        </div>
-        <a data-bind="click: $root.ToggleGCCVisibility">
-            <h3>Selected Client</h3>
-        </a>
-        <div data-bind="css: {hidden : !$root.GroupClientControlsVisibility()}">
-            <a data-bind="click: $root.ToggleCDVisibility">
-                <h4>Details</h4>
+            <a data-bind="click: $root.ToggleGCVisibility">
+                <h3>
+                    Group
+                </h3>
             </a>
-            <div style="max-height:50vh; overflow-x: auto;" data-bind="css: { hidden : !$root.ClientDetailsVisibility() }">
-                <!--ko if: SelectedClientProfile-->
-                <!--ko using: SelectedClientProfile -->
-                <!--ko foreach: MemberDetails-->
-                <div class="form-group">
-                    <label data-bind="text: ColumnName"></label>
-                    <input type="text" readonly data-bind="value: Value" class="form-control" />
+            <div data-bind="css: { hidden: !$root.GroupControlsVisibility()}">
+                <h4>Add Group</h4>
+                <div>
+                    <div class="form-group">
+                        <label for="GCAGName">Group Name:</label>
+                        <input type="text" data-bind="value: $root.addGroupText" />
+                        <input type="submit" data-bind="click: $root.addGroup" />
+                    </div>
                 </div>
+                <!--ko if: typeof $root.SelectedGroup() != 'undefined' -->
+                <h4>Selected Group</h4>
+                <p data-bind="text: $root.SelectedGroup().Name"></p>
+                <button data-bind="click: $root.SelectedGroup().SelectClients" class="btn btn-primary"> Select Clients</button>
                 <!--/ko-->
-                <!--/ko-->
-                <!--/ko-->
+
             </div>
-            <a data-bind="click: $root.ToggleCAVisibility">
-                <h4>Apps</h4>
+            <a data-bind="click: $root.ToggleGCCVisibility">
+                <h3>Selected Client</h3>
             </a>
-            <div style="max-height:50vh; overflow-x: auto;" data-bind="css: { hidden : !$root.ClientAppsVisibility() }">
-                <!--ko if: SelectedClientProfile-->
-                <!--ko using: SelectedClientProfile -->
-                <!--ko foreach: AppsList-->
-                <div class="form-group">
-                    <label data-bind="text: AppName"></label>
-                    <label data-bind="text: Version"></label>
-                    
-                    <i><label data-bind="text: lastUpdated"></label></i>
+            <div data-bind="css: {hidden : !$root.GroupClientControlsVisibility()}">
+                <a data-bind="click: $root.ToggleCDVisibility">
+                    <h4>Details</h4>
+                </a>
+                <div style="max-height:50vh; overflow-x: auto;" data-bind="css: { hidden : !$root.ClientDetailsVisibility() }">
+                    <!--ko if: SelectedClientProfile-->
+                    <!--ko using: SelectedClientProfile -->
+                    <!--ko foreach: MemberDetails-->
+                    <div class="form-group">
+                        <label data-bind="text: ColumnName"></label>
+                        <input type="text" readonly data-bind="value: Value" class="form-control" />
+                    </div>
+                    <!--/ko-->
+                    <!--/ko-->
+                    <!--/ko-->
                 </div>
-                <!--/ko-->
-                <!--/ko-->
-                <!--/ko-->
+                <a data-bind="click: $root.ToggleCAVisibility">
+                    <h4>Apps</h4>
+                </a>
+                <div style="max-height:50vh; overflow-x: auto;" data-bind="css: { hidden : !$root.ClientAppsVisibility() }">
+                    <!--ko if: SelectedClientProfile-->
+                    <!--ko using: SelectedClientProfile -->
+                    <!--ko foreach: AppsList-->
+                    <div class="form-group">
+                        <label data-bind="text: AppName"></label>
+                        <label data-bind="text: Version"></label>
+
+                        <i><label data-bind="text: lastUpdated"></label></i>
+                    </div>
+                    <!--/ko-->
+                    <!--/ko-->
+                    <!--/ko-->
+                </div>
             </div>
         </div>
-        
-
     </div>
-
 </div>
-
 @section headerScripts
 {
     <script type="text/javascript">
