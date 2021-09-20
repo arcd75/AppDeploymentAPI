@@ -33,6 +33,7 @@ namespace SPWSAppDeploymentAPINETFX
             await ClientProfileDetail.ReloadLocal();
             await ClientProfileGroupMember.ReloadLocal();
             await ClientProfileGroup.ReloadLocal();
+            await ADUser.ReloadLocal();
             foreach (var item in ClientProfile.local)
             {
                 var details = ClientProfileDetail.local.Where(cpd => cpd.ClientProfileId == item.ClientProfileId).ToList();
@@ -45,16 +46,17 @@ namespace SPWSAppDeploymentAPINETFX
                         ipaddresses.Add(ip.Value);
                     }
                 }
-                if (!ADHub.sClients.Exists(sc => sc.ClientProfileId == item.ClientProfileId))
+                if (!ADHub.sClients.Exists(sc => sc.SID.Equals(item.SID)))
                 {
                     ADHub.sClients.Add(new ADHub.SClient()
                     {
-                        ClientProfileId = item.ClientProfileId,
                         ConnectionId = "",
-                        HostName = HostName != null ? HostName.Value : "",
+                        HostName = HostName?.Value,
                         IPAddress = Newtonsoft.Json.JsonConvert.SerializeObject(ipaddresses.ToArray()),
                         isActive = false,
-                        LastActiveTime = DateTime.MinValue
+                        LastActiveTime = DateTime.MinValue,
+                        SID = item.SID,
+                        ClientProfileId = item.ClientProfileId
                     });
                 }
              

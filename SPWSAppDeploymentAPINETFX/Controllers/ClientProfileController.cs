@@ -14,89 +14,83 @@ namespace SPWSAppDeploymentAPINETFX.Controllers
     {
         [Route("ClientProfile/RequestId/{SerialNo}")]
         [HttpGet]
-        public string RequestId(string SerialNo)
+        public AppJsonResponse RequestId(string SerialNo)
         {
-            string result = "";
-            string Status = "";
-            //AppsController.AppJsonResponse response = new AppsController.AppJsonResponse();
+            AppJsonResponse result = new AppJsonResponse();
             try
             {
                 var reqpf = new RequestFP();
-                using (var adc = new ADContext())
+                ClientProfile sid = ClientProfile.local.FirstOrDefault(x => x.SID.Equals(SerialNo));
+                if (sid != null)
                 {
-                    var clientProfile = new ClientProfile()
-                    {
-                        AssetTag = "",
-                    };
-                    var sameSerial = ClientProfileDetail.local.FirstOrDefault(c => c.ColumnName == "Serial Number" && c.Value == SerialNo);
-                    if (sameSerial != null)
-                    {
-                        clientProfile = ClientProfile.local.FirstOrDefault(c => c.ClientProfileId == sameSerial.ClientProfileId);
-                        reqpf.ClientProfileId = clientProfile.ClientProfileId;
-                    }
-                    else
+                    reqpf.ClientProfileId = sid.ClientProfileId;
+                }
+                else
+                {
+                    sid = new ClientProfile { Asset = "", SID = SerialNo };
+                    using (var adc = new ADContext())
                     {
                         adc.Database.BeginTransaction();
-                        while (true)
+                        sid = adc.ClientProfiles.Add(sid);
+                        adc.SaveChanges();
+                        adc.Database.CurrentTransaction.Commit();
+                        ClientProfile.local.Add(sid);
+                        var have = ClientProfileDetail.local.FirstOrDefault(x => x.ColumnName.Equals("Serial Number") && x.Value.Equals(SerialNo));
+                        if (have != null)
                         {
-                            clientProfile = adc.ClientProfiles.Add(clientProfile);
-
-                            if (!RequestFP.local.Exists(rfp => rfp.ClientProfileId == clientProfile.ClientProfileId))
+                            adc.Database.BeginTransaction();
+                            IQueryable<ClientProfileDetail> rec = adc.ClientProfileDetails.Where(x => x.ClientProfileId == have.ClientProfileId);
+                            foreach (var item in rec)
                             {
-
-                                adc.SaveChanges();
-                                reqpf.ClientProfileId = clientProfile.ClientProfileId;
-                                break;
+                                item.ClientProfileId = sid.ClientProfileId;
+                            }
+                            adc.Database.CurrentTransaction.Commit();
+                            var recLcl = ClientProfileDetail.local.Where(x => x.ClientProfileId == have.ClientProfileId);
+                            foreach (var item in recLcl)
+                            {
+                                item.ClientProfileId = sid.ClientProfileId;
                             }
                         }
-
-                        adc.Database.CurrentTransaction.Commit();
                     }
-                    RequestFP.local.Add(reqpf);
-                    ClientProfile.ReloadLocal();
                 }
-                result = Newtonsoft.Json.JsonConvert.SerializeObject(reqpf);
-                Status = "Ok!";
+                result.Data = Newtonsoft.Json.JsonConvert.SerializeObject(reqpf);
+                result.Status = true;
             }
             catch (Exception ex)
             {
-                Status = "Exception!";
-                result = ex.ToString();
+                result.Exception = ex.ToString();
                 //throw;
             }
             Debug.WriteLine(Request.Headers.Host);
 
-            return Newtonsoft.Json.JsonConvert.SerializeObject(new AppsController.AppJsonResponse() { Status = Status, Data = result }); ;
+            return result;
         }
 
         [Route("ClientProfile/CompleteId/{FPID}")]
         [HttpGet]
-        public string CompleteId(int FPID)
+        public AppJsonResponse CompleteId(int FPID)
         {
-            string result = "";
-            string Status = "";
+            AppJsonResponse result = new AppJsonResponse();
             try
             {
 
                 var reqfp = RequestFP.local.FirstOrDefault(rfp => rfp.FPID == FPID);
 
-                Status = "Ok!";
+                result.Status = true;
             }
             catch (Exception ex)
             {
-                result = ex.ToString();
-                Status = "Exception!";
+                result.Exception = ex.ToString();
                 //throw;
             }
-            return Newtonsoft.Json.JsonConvert.SerializeObject(new AppsController.AppJsonResponse() { Status = Status, Data = result });
+            return result;
         }
 
         [Route("ClientProfile/SendUpdate/{ClientProfileId}")]
         [HttpPost]
-        public async Task<string> SendUpdate(int ClientProfileId)
+        public async Task<AppJsonResponse> SendUpdate(int ClientProfileId)
         {
-            string result = "";
-            string Status = "";
+            AppJsonResponse result = new AppJsonResponse();
             try
             {
                 using (var adc = new ADContext())
@@ -155,59 +149,55 @@ namespace SPWSAppDeploymentAPINETFX.Controllers
 
                     adc.SaveChanges();
                     adc.Database.CurrentTransaction.Commit();
-                    ClientProfileDetail.ReloadLocal();
+                    await ClientProfileDetail.ReloadLocal();
 
                 }
-                Status = "Ok!";
+                result.Status = true;
             }
             catch (Exception ex)
             {
-                result = ex.ToString();
-                Status = "Exception!";
+                result.Exception = ex.ToString();
                 //throw;
             }
 
-            return Newtonsoft.Json.JsonConvert.SerializeObject(new AppsController.AppJsonResponse() { Status = Status, Data = result });
+            return result;
         }
 
         [Route("ClientProfile/AddGroup/{GroupName}")]
         [HttpGet]
-        public async Task<string> AddGroup(string GroupName)
+        public Task<AppJsonResponse> AddGroup(string GroupName)
         {
-            string result = "";
-            string Status = "";
+            AppJsonResponse result = new AppJsonResponse();
             try
             {
                 using (var adc = new ADContext())
                 {
                     adc.Database.BeginTransaction();
-                    adc.ClientProfileGroups.Add(new ClientProfileGroup()
+                    var group = adc.ClientProfileGroups.Add(new ClientProfileGroup()
                     {
                         Name = GroupName
                     });
                     adc.SaveChanges();
 
                     adc.Database.CurrentTransaction.Commit();
-                    await ClientProfileGroup.ReloadLocal();
+                    ClientProfileGroup.local.Add(group);
                 }
-                result = $"{GroupName} has been added to the database!";
-                Status = "Ok!";
+                result.Data = $"{GroupName} has been added to the database!";
+                result.Status = true;
             }
             catch (Exception ex)
             {
-                result = ex.ToString();
-                Status = "Exception!";
+                result.Exception = ex.ToString();
                 //throw;
             }
-            return Newtonsoft.Json.JsonConvert.SerializeObject(new AppsController.AppJsonResponse() { Status = Status, Data = result });
+            return Task.FromResult(result);
         }
 
         [Route("ClientProfile/DeleteGroup/{GroupId}")]
         [HttpGet]
-        public async Task<string> DeleteGroup(int GroupId)
+        public async Task<AppJsonResponse> DeleteGroup(int GroupId)
         {
-            string result = "";
-            string Status = "";
+            AppJsonResponse result = new AppJsonResponse();
             try
             {
                 using (var adc = new ADContext())
@@ -221,105 +211,97 @@ namespace SPWSAppDeploymentAPINETFX.Controllers
                     adc.Database.CurrentTransaction.Commit();
                     await ClientProfileGroupMember.ReloadLocal();
                     await ClientProfileGroup.ReloadLocal();
-                    result = $"{Group.Name} has been deleted from the database!";
+                    result.Data = $"{Group.Name} has been deleted from the database!";
                 }
 
-                Status = "Ok!";
+                result.Status = true;
             }
             catch (Exception ex)
             {
-                result = ex.ToString();
-                Status = "Exception!";
-                //throw;
+                result.Exception = ex.ToString();
             }
-            return Newtonsoft.Json.JsonConvert.SerializeObject(new AppsController.AppJsonResponse() { Status = Status, Data = result.ToString() });
+            return result;
         }
 
         [Route("ClientProfile/GetGroups")]
         [HttpGet]
-        public string GetGroups()
+        public AppJsonResponse GetGroups()
         {
-            string result = "";
-            string Status = "";
+            AppJsonResponse result = new AppJsonResponse();
             try
             {
-                result = Newtonsoft.Json.JsonConvert.SerializeObject(ClientProfileGroup.local);
-                Status = "Ok!";
+                result.Data = Newtonsoft.Json.JsonConvert.SerializeObject(ClientProfileGroup.local);
+                result.Status = true;
             }
             catch (Exception ex)
             {
-                result = ex.ToString();
-                Status = "Exception!";
-                //throw;
+                result.Exception = ex.ToString();
             }
 
-            return Newtonsoft.Json.JsonConvert.SerializeObject(new AppsController.AppJsonResponse() { Status = Status, Data = result.ToString() });
+            return result;
         }
 
         [Route("ClientProfile/GetMembers/{GroupId}")]
         [HttpGet]
-        public string GetMembers(int GroupId)
+        public AppJsonResponse GetMembers(int GroupId)
         {
-            string result = "";
-            string Status = "";
+            AppJsonResponse result = new AppJsonResponse();
             try
             {
-                result = Newtonsoft.Json.JsonConvert.SerializeObject(ClientProfileGroupMember.local.Where(cpgm => cpgm.ClientProfileGroupId == GroupId).ToList());
-                Status = "Ok!";
+                result.Data = Newtonsoft.Json.JsonConvert.SerializeObject(ClientProfileGroupMember.local.Where(cpgm => cpgm.ClientProfileGroupId == GroupId).ToList());
+                result.Status = true;
             }
             catch (Exception ex)
             {
-                result = ex.ToString();
-                Status = "Exception!";
-                //throw;
+                result.Exception = ex.ToString();
             }
-            return Newtonsoft.Json.JsonConvert.SerializeObject(new AppsController.AppJsonResponse() { Status = Status, Data = result.ToString() });
+            return result;
         }
 
         [Route("ClientProfile/AddGroupMembers/{GroupId}")]
         [HttpPost]
-        public async Task<string> AddGroupMembers(int GroupId)
+        public async Task<AppJsonResponse> AddGroupMembers(int GroupId)
         {
-            string result = "";
-            string Status = "";
+            AppJsonResponse result = new AppJsonResponse();
             try
             {
                 var requestString = await Request.Content.ReadAsStringAsync();
-                int[] Ids = Newtonsoft.Json.JsonConvert.DeserializeObject<int[]>(requestString);
+                string[] Ids = Newtonsoft.Json.JsonConvert.DeserializeObject<string[]>(requestString);
                 using (var adc = new ADContext())
                 {
-                    adc.Database.BeginTransaction();
                     foreach (var id in Ids)
                     {
-                        var match = ClientProfileGroupMember.local.Where(cpgm => cpgm.ClientProfileId == id && cpgm.ClientProfileGroupId == GroupId).ToList();
-                        if (match.Count == 0)
+                        var data = ClientProfile.local.FirstOrDefault(x => x.SID.Equals(id));
+                        if (data != null)
                         {
-                            adc.ClientProfileMembers.Add(new ClientProfileGroupMember() { ClientProfileGroupId = GroupId, ClientProfileId = id });
+                            var match = ClientProfileGroupMember.local.Where(cpgm => cpgm.ClientProfileId == data.ClientProfileId && cpgm.ClientProfileGroupId == GroupId).ToList();
+                            if (match.Count == 0)
+                            {
+                                adc.Database.BeginTransaction();
+                                var m = adc.ClientProfileMembers.Add(new ClientProfileGroupMember() { ClientProfileGroupId = GroupId, ClientProfileId = data.ClientProfileId });
+                                adc.SaveChanges();
+                                adc.Database.CurrentTransaction.Commit();
+                                ClientProfileGroupMember.local.Add(m);
+                            }
                         }
                     }
 
-                    adc.SaveChanges();
-                    adc.Database.CurrentTransaction.Commit();
                 }
-                await ClientProfileGroupMember.ReloadLocal();
-                Status = "Ok!";
+                result.Status = true;
 
             }
             catch (Exception ex)
             {
-                result = ex.ToString();
-                Status = "Exception!";
-                //throw;
+                result.Exception = ex.ToString();
             }
-            return Newtonsoft.Json.JsonConvert.SerializeObject(new AppsController.AppJsonResponse() { Status = Status, Data = result });
+            return result;
         }
 
         [Route("ClientProfile/DeleteGroupMembers/{GroupId}")]
         [HttpPost]
-        public async Task<string> DeleteGroupMembers(int GroupId)
+        public async Task<AppJsonResponse> DeleteGroupMembers(int GroupId)
         {
-            string result = "";
-            string Status = "";
+            AppJsonResponse result = new AppJsonResponse();
             try
             {
                 var requestString = await Request.Content.ReadAsStringAsync();
@@ -332,58 +314,51 @@ namespace SPWSAppDeploymentAPINETFX.Controllers
                     adc.SaveChanges();
                     adc.Database.CurrentTransaction.Commit();
                 }
-                Status = "Ok!";
-                ClientProfileGroupMember.ReloadLocal();
+                result.Status = true;
 
             }
             catch (Exception ex)
             {
-                result = ex.ToString();
-                Status = "Exception!";
-                //throw;
+                result.Exception = ex.ToString();
             }
-            return Newtonsoft.Json.JsonConvert.SerializeObject(new AppsController.AppJsonResponse() { Status = Status, Data = result });
+            return result;
         }
 
         [Route("ClientProfile/GetMemberDetails/{ClientProfileId}")]
         [HttpGet]
-        public async Task<string> GetMemberDetails(int ClientProfileId)
+        public Task<AppJsonResponse> GetMemberDetails(int ClientProfileId)
         {
-            string result = "";
-            string Status = "";
+            AppJsonResponse result = new AppJsonResponse();
             try
             {
                 if (ClientProfileDetail.local.Exists(cpd => cpd.ClientProfileId == ClientProfileId))
                 {
-                    result = Newtonsoft.Json.JsonConvert.SerializeObject(ClientProfileDetail.local.Where(cpd => cpd.ClientProfileId == ClientProfileId).ToList());
+                    result.Data = Newtonsoft.Json.JsonConvert.SerializeObject(ClientProfileDetail.local.Where(cpd => cpd.ClientProfileId == ClientProfileId).ToList());
+                    result.Status = true;
                 }
-                Status = "Ok!";
             }
             catch (Exception ex)
             {
-                result = ex.ToString();
-                Status = "Exception!";
-                //throw;
+                result.Exception = ex.ToString();
             }
-            return Newtonsoft.Json.JsonConvert.SerializeObject(new AppsController.AppJsonResponse() { Status = Status, Data = result.ToString() });
+            return Task.FromResult(result);
         }
         [Route("ClientProfile/GetAppDetails/{ClientProfileId}/{MachineName}")]
-        public async Task<string> GetAppDetails(int ClientProfileId, string MachineName) {
-            string result = string.Empty;
-            string Status = string.Empty;
+        public Task<AppJsonResponse> GetAppDetails(int ClientProfileId, string MachineName)
+        {
+            AppJsonResponse result = new AppJsonResponse();
             try
             {
                 if (SystemInstallationRecord.local.Exists(x=>x.ClientProfileId == ClientProfileId)) {
-                    result = Newtonsoft.Json.JsonConvert.SerializeObject(SystemInstallationRecord.local.Where(x => x.ClientProfileId == ClientProfileId && x.MachineName.Equals(MachineName)).ToList());
+                    result.Data = Newtonsoft.Json.JsonConvert.SerializeObject(SystemInstallationRecord.local.Where(x => x.ClientProfileId == ClientProfileId && x.MachineName.Equals(MachineName)).ToList());
+                    result.Status = true;
                 }
-                Status = "Ok!";
             }
             catch (Exception ex)
             {
-                result = ex.ToString();
-                Status = "Exception!";
+                result.Exception = ex.ToString();
             }
-            return Newtonsoft.Json.JsonConvert.SerializeObject(new AppsController.AppJsonResponse() { Status = Status, Data = result });
+            return Task.FromResult(result);
         }
     }
 }

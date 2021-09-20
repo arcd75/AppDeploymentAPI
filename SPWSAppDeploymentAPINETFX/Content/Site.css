@@ -6,6 +6,14 @@ html {
     background: #e9ecef !important;
 }
 
+.active {
+    color: green;
+}
+
+.inactive {
+    color: red;
+}
+
 .body-content {
     padding-top: 60px;
     padding-bottom: 60px;
@@ -13,6 +21,7 @@ html {
     padding-right: 15px;
     height: inherit;
 }
+
 footer {
     position: fixed;
     width: 100%;

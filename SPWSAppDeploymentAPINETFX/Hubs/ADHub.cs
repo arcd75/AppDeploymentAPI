@@ -15,25 +15,33 @@ namespace SPWSAppDeploymentAPINETFX.Hubs
         public static List<ServerRequest> sRequest;
 
 
-        public void Join(int ClientProfileId, string connectionid)
+        public void Join(string sid, string connectionid)
         {
             if (sClients == null)
             {
                 sClients = new List<SClient>();
             }
-            if (sClients.Exists(sc => sc.ClientProfileId == ClientProfileId))
+            if (sClients.Exists(sc => sc.SID.Equals(sid)))
             {
-                var client = sClients.FirstOrDefault(sc => sc.ClientProfileId == ClientProfileId);
+                var client = sClients.FirstOrDefault(sc => sc.SID.Equals(sid));
                 client.ConnectionId = connectionid;
                 client.isActive = true;
-
             }
             else
             {
+                var pf = ClientProfile.local.FirstOrDefault(x => x.SID.Equals(sid));
+                string hostname = "";
+                if (pf != null)
+                {
+                    var cl = ClientProfileDetail.local.Where(x => x.ClientProfileId == pf.ClientProfileId).ToList();
+                    hostname = cl.FirstOrDefault(x => x.ColumnName.Equals("HostName"))?.Value;
+                }
                 sClients.Add(new SClient()
                 {
-                    ClientProfileId = ClientProfileId,
+                    SID = sid,
                     ConnectionId = connectionid,
+                    HostName = hostname,
+                    ClientProfileId = pf.ClientProfileId,
                     isActive = true,
                 });
                 Clients.Client(Context.ConnectionId).RequestNetworkData();
@@ -47,9 +55,9 @@ namespace SPWSAppDeploymentAPINETFX.Hubs
 
         }
 
-        public void ReceiveNetworkData(int ClientProfileId, string HostName, string IPAddress)
+        public void ReceiveNetworkData(string sid, string HostName, string IPAddress)
         {
-            var client = sClients.FirstOrDefault(sc => sc.ClientProfileId == ClientProfileId);
+            var client = sClients.FirstOrDefault(sc => sc.SID.Equals(sid));
             client.HostName = HostName;
             client.IPAddress = IPAddress;
         }
@@ -133,71 +141,59 @@ namespace SPWSAppDeploymentAPINETFX.Hubs
             return base.OnConnected();
         }
 
-        public void CloseApp(int[] ClientIds, string serverName, int appId)
+        public void CloseApp(string[] SIDs, string serverName, int appId)
         {
-            string IPAddress = "";
-            if (serverName == "DevServer")
+            var sp = ServerProfile.local.FirstOrDefault(x => x.ServerName.Equals(serverName));
+            if (sp == null)
             {
-                IPAddress = "172.17.147.86";
+                return;
             }
-            else if (serverName == "ACSServer")
-            {
-                IPAddress = "172.17.147.71";
-            }
-            var si = ServerInstance.serverInstances.FirstOrDefault(s => s.IPAddress == IPAddress);
+            var si = ServerInstance.serverInstances.FirstOrDefault(s => s.IPAddress == sp.IPAddress);
             var app = si.lApps.FirstOrDefault(a => a.AppId == appId);
-            foreach (var Id in ClientIds)
+            foreach (var Id in SIDs)
             {
-                var client = sClients.FirstOrDefault(sc => sc.ClientProfileId == Id);
+                var client = sClients.FirstOrDefault(sc => sc.SID.Equals(Id));
                 Clients.Client(client.ConnectionId).closeApp(serverName, app.AppName);
             }
         }
 
-        public void PushUpdates(int[] ClientIds)
+        public void PushUpdates(string[] SIDs)
         {
-            foreach (var Id in ClientIds)
+            foreach (var Id in SIDs)
             {
-                var client = sClients.FirstOrDefault(sc => sc.ClientProfileId == Id);
+                var client = sClients.FirstOrDefault(sc => sc.SID.Equals(Id));
                 Clients.Client(client.ConnectionId).pushSelfUpdate();
             }
         }
 
-        public void InstallApp(int[] ClientIds, string serverName, int appId)
+        public void InstallApp(string[] SIDs, string serverName, int appId)
         {
-            string IPAddress = "";
-            if (serverName == "DevServer")
+            ServerProfile sp = ServerProfile.local.FirstOrDefault(x => x.ServerName.Equals(serverName));
+            if (sp == null)
             {
-                IPAddress = "172.17.147.86";
+                return;
             }
-            else if (serverName == "ACSServer")
+            ServerInstance si = ServerInstance.serverInstances.FirstOrDefault(s => s.IPAddress == sp.IPAddress);
+            App app = si.lApps.FirstOrDefault(a => a.AppId == appId);
+            foreach (var Id in SIDs)
             {
-                IPAddress = "172.17.147.71";
-            }
-            var si = ServerInstance.serverInstances.FirstOrDefault(s => s.IPAddress == IPAddress);
-            var app = si.lApps.FirstOrDefault(a => a.AppId == appId);
-            foreach (var Id in ClientIds)
-            {
-                var client = sClients.FirstOrDefault(sc => sc.ClientProfileId == Id);
+                var client = sClients.FirstOrDefault(sc => sc.SID.Equals(Id));
                 Clients.Client(client.ConnectionId).install(serverName, Newtonsoft.Json.JsonConvert.SerializeObject(app));
             }
         }
 
-        public void UninstallApp(int[] ClientIds, string serverName, int appId)
+        public void UninstallApp(string[] SIDs, string serverName, int appId)
         {
-            string IPAddress = "";
-            if (serverName == "DevServer")
+            ServerProfile sp = ServerProfile.local.FirstOrDefault(x => x.ServerName.Equals(serverName));
+            if (sp == null)
             {
-                IPAddress = "172.17.147.86";
+                return;
             }
-            else if (serverName == "ACSServer")
+            ServerInstance si = ServerInstance.serverInstances.FirstOrDefault(s => s.IPAddress == sp.IPAddress);
+            App app = si.lApps.FirstOrDefault(a => a.AppId == appId);
+            foreach (var Id in SIDs)
             {
-                IPAddress = "172.17.147.71";
-            }
-            var si = ServerInstance.serverInstances.FirstOrDefault(s => s.IPAddress == IPAddress);
-            var app = si.lApps.FirstOrDefault(a => a.AppId == appId);
-            foreach (var Id in ClientIds)
-            {
-                var client = sClients.FirstOrDefault(sc => sc.ClientProfileId == Id);
+                var client = sClients.FirstOrDefault(sc => sc.SID.Equals(Id));
                 Clients.Client(client.ConnectionId).uninstall(serverName, Newtonsoft.Json.JsonConvert.SerializeObject(app));
             }
         }
@@ -251,12 +247,13 @@ namespace SPWSAppDeploymentAPINETFX.Hubs
 
         public class SClient
         {
+            public long ClientProfileId { get; set; }
+            public string SID { get; set; }
             public string ConnectionId { get; set; }
             public string HostName { get; set; }
             public string IPAddress { get; set; }
-            public long ClientProfileId { get; set; }
             public DateTime LastActiveTime { get; set; }
-            public bool isActive { get; set; }
+            public bool isActive { get; set; } = false;
         }
 
         public enum ServerRequestStatus

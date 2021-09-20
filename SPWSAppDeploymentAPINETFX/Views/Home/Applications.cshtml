@@ -240,7 +240,7 @@
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-primary" data-dismiss="modal" data-bind="click: SelectedFile().UploadFile">Upload</button>
+                            <button type="button" class="btn btn-primary" data-bind="click: SelectedFile().UploadFile">Upload</button>
                         </div>
                     </div>
                 </div>
@@ -401,19 +401,17 @@
             }
         }
 
-        function GetFiles(ServerName, AppId, AppVersionId) {
-            $.ajax(getAppFilesUrl + "/" + ServerName + "/" + AppId + "/" + AppVersionId,
+        function GetFiles(ServerName, AppVersionId) {
+            $.ajax(getAppFilesUrl + "/" + ServerName + "/" + AppVersionId,
                 {
                     method: "GET",
                     dataType: "application/json",
                     statusCode: {
                         200: function (data) {
                             console.log(data);
-                            var processedText = data.responseText.replaceAll('""', '"');
-                            var parsedData = JSON.parse(processedText);
-                            parsedData = JSON.parse(parsedData);
-                            var processedData = JSON.parse(parsedData.Data);
-                            if (parsedData.Status == "Ok!") {
+                            var parsedData = JSON.parse(data.responseText);
+                            if (parsedData.Status == true) {
+                                var processedData = JSON.parse(parsedData.Data);
                                 viewModel.AppFiles([]);
 
                                 for (var i = 0; i < processedData.length; i++) {
@@ -441,11 +439,9 @@
                     statusCode: {
                         200: function (data) {
                             console.log(data);
-                            var processedText = data.responseText.replaceAll('""', '"');
-                            var parsedData = JSON.parse(processedText);
-                            parsedData = JSON.parse(parsedData);
-                            var processedData = JSON.parse(parsedData.Data);
-                            if (parsedData.Status == "Ok!") {
+                            var parsedData = JSON.parse(data.responseText);
+                            if (parsedData.Status == true) {
+                                var processedData = JSON.parse(parsedData.Data);
                                 viewModel.Versions([]);
                                 viewModel.SelectedVersion = ko.observable();
                                 viewModel.AppFiles([]);
@@ -475,11 +471,9 @@
                     statusCode: {
                         200: function (data) {
                             console.log(data);
-                            var processedText = data.responseText.replaceAll('""', '"');
-                            var parsedData = JSON.parse(processedText);
-                            parsedData = JSON.parse(parsedData);
-                            var processedData = JSON.parse(parsedData.Data);
-                            if (parsedData.Status == "Ok!") {
+                            var parsedData = JSON.parse(data.responseText);
+                            if (parsedData.Status == true) {
+                                var processedData = JSON.parse(parsedData.Data);
                                 viewModel.Apps([]);
                                 viewModel.SelectedApp = ko.observable();
                                 viewModel.Versions([]);
@@ -512,11 +506,9 @@
                         200: function (data) {
                             console.log(data);
                             viewModel.Servers([]);
-                            var processedText = data.responseText.replaceAll('""', '"');
-                            var parsedData = JSON.parse(processedText);
-                            parsedData = JSON.parse(parsedData);
-                            var processedData = JSON.parse(parsedData.Data);
-                            if (parsedData.Status == "Ok!") {
+                            var parsedData = JSON.parse(data.responseText);
+                            if (parsedData.Status == true) {
+                                var processedData = JSON.parse(parsedData.Data);
                                 for (var i = 0; i < processedData.length; i++) {
                                     var instance = processedData[i];
                                     viewModel.Servers.push(new Server(instance.IPAddress, instance.ServerName));
@@ -555,11 +547,8 @@
                                     {
                                         200: function (data) {
                                             console.log(data);
-                                            var processedText = data.responseText.replaceAll('""', '"');
-                                            var parsedData = JSON.parse(processedText);
-                                            parsedData = JSON.parse(parsedData);
-                                            //var processedData = JSON.parse(parsedData.Data);
-                                            if (parsedData.Status == "Ok!") {
+                                            var parsedData = JSON.parse(data.responseText);
+                                            if (parsedData.Status == true) {
                                                 alertify.success("New Application Created! : " + self.AppName());
                                                 GetApps(viewModel.SelectedServer().ServerName())
                                             }
@@ -603,15 +592,13 @@
                                     statusCode: {
                                         200: function (data) {
                                             console.log(data);
-                                            var processedText = data.responseText.replaceAll('""', '"');
-                                            var parsedData = JSON.parse(processedText);
-                                            parsedData = JSON.parse(parsedData);
-                                            if (parsedData.Status == "Ok!") {
+                                            var parsedData = JSON.parse(data.responseText);
+                                            if (parsedData.Status == true) {
                                                 alertify.success("New version created! " + self.AppVersionName());
                                                 GetVersions(self.ServerName(), viewModel.SelectedApp().AppId());
                                             }
                                             else {
-                                                alertify.error(parsedData.Data);
+                                                alertify.error(parsedData.Exception);
                                             }
                                         }
                                     }
@@ -704,16 +691,14 @@
                                     statusCode: {
                                         200: function (data) {
                                             console.log(data);
-                                            var processedText = data.responseText.replaceAll('""', '"');
-                                            var parsedData = JSON.parse(processedText);
-                                            parsedData = JSON.parse(parsedData);
-                                            if (parsedData.Status == "Ok!") {
+                                            var parsedData = JSON.parse(data.responseText);
+                                            if (parsedData.Status == true) {
                                                 alertify.success("Creating directory success!" + self.AppFileName());
                                                 viewModel.SelectedVersion().SelectVersion();
 
                                             }
                                             else {
-                                                alertify.error(parsedData.Data);
+                                                alertify.error(parsedData.Exception);
                                             }
                                         }
                                     }
@@ -757,36 +742,41 @@
             }
 
             self.UploadFile = function () {
-                var fd = new FormData();
-                for (var i = 0; i < viewModel.ForUploadFilesVM().length; i++) {
-                    var file = viewModel.ForUploadFilesVM()[i];
-                    fd.append(file.FileName, file.File());
-                }
-                var url = uploadFileUrl + "/" + viewModel.SelectedServer().ServerName() + "/" + viewModel.SelectedApp().AppId() + "/" + viewModel.SelectedVersion().AppVersionId() + "/" + viewModel.SelectedFile().AppFileId();
-                $.ajax(url,
-                    {
-                        data: fd,
-                        method: "POST",
-                        dataType: false,
-                        contentType: false ,
-                        processData: false,
-                        statusCode: {
-                            200: function (data) {
-                                console.log(data);
-                                //var processedText = data.responseText.replaceAll('""', '"');
-                                //var parsedData = JSON.parse(processedText);
-                                var parsedData = JSON.parse(data);
-                                if (parsedData.Status == "Ok!") {
-                                    viewModel.ForUploadFilesVM([]);
-                                    alertify.success("Upload Complete! " + parsedData.Data);
-                                    viewModel.SelectedVersion().SelectVersion();
-                                }
-                                else {
-                                    alertify.error(parsedData.Data);
+                $('#modalUpload').modal('hide');
+                if (viewModel.ForUploadFilesVM().length > 0) {
+                    var fd = new FormData();
+                    for (var i = 0; i < viewModel.ForUploadFilesVM().length; i++) {
+                        var file = viewModel.ForUploadFilesVM()[i];
+                        fd.append(file.FileName, file.File());
+                    }
+                    var url = uploadFileUrl + "/" + viewModel.SelectedServer().ServerName() + "/" + viewModel.SelectedApp().AppId() + "/" + viewModel.SelectedVersion().AppVersionId() + "/" + viewModel.SelectedFile().AppFileId();
+                    $.ajax(url,
+                        {
+                            data: fd,
+                            method: "POST",
+                            dataType: false,
+                            contentType: false,
+                            processData: false,
+                            statusCode: {
+                                200: function (data) {
+                                    console.log(data);
+                                    if (data.Status == true) {
+                                        viewModel.ForUploadFilesVM([]);
+                                        alertify.success("Upload Complete! " + data.Data);
+                                        viewModel.SelectedVersion().SelectVersion();
+                                    }
+                                    else {
+                                        alertify.error(parsedData.Exception);
+                                    }
                                 }
                             }
-                        }
-                    });
+                        });
+                }
+                else {
+                    alertify.error("No selected file to be uploaded");
+                }
+                $('body').removeClass('modal-open');
+                $('.modal-backdrop').remove();
             }
         }
 
@@ -799,7 +789,7 @@
             self.Date = ko.observable(Date);
             self.SelectVersion = function () {
                 viewModel.SelectedVersion(self);
-                GetFiles(viewModel.SelectedServer().ServerName(), viewModel.SelectedApp().AppId(), self.AppVersionId());
+                GetFiles(viewModel.SelectedServer().ServerName(), self.AppVersionId());
                 viewModel.Selected("Version");
             }
             self.DeleteVersion = function () {
@@ -812,16 +802,14 @@
                                 statusCode: {
                                     200: function (data) {
                                         console.log(data);
-                                        var processedText = data.responseText.replaceAll('""', '"');
-                                        var parsedData = JSON.parse(processedText);
-                                        parsedData = JSON.parse(parsedData);
-                                        if (parsedData.Status == "Ok!") {
+                                        var parsedData = JSON.parse(data.responseText);
+                                        if (parsedData.Status == true) {
                                             alertify.success("Delete Version success! " + self.AppVersionName());
                                             viewModel.SelectedApp().SelectApp();
                                             //GetVersions(viewModel.SelectedServer().ServerName(), viewModel.SelectedApp().AppId());
                                         }
                                         else {
-                                            alertify.error(parsedData.Data);
+                                            alertify.error(parsedData.Exception);
                                         }
 
 
@@ -860,18 +848,14 @@
                                 statusCode: {
                                     200: function (data) {
                                         console.log(data);
-                                        var processedText = data.responseText.replaceAll('""', '"');
-                                        var parsedData = JSON.parse(processedText);
-                                        parsedData = JSON.parse(parsedData);
-                                        //var processedData = JSON.parse(parsedData.Data);
+                                        var parsedData = JSON.parse(data.responseText);
 
-                                        if (parsedData.Status == "Ok!") {
+                                        if (parsedData.Status == true) {
                                             alertify.success("Application Deleted! : " + self.AppName());
                                             viewModel.SelectedServer().SelectServer();
-                                            //GetApps(viewModel.SelectedServer().ServerName());
                                         }
                                         else {
-                                            alertify.error(parsedData);
+                                            alertify.error(parsedData.Exception);
                                         }
                                     }
                                 }
@@ -946,16 +930,14 @@
                                 statusCode: {
                                     200: function (data) {
                                         console.log(data);
-                                        var processedText = data.responseText.replaceAll('""', '"');
-                                        var parsedData = JSON.parse(processedText);
-                                        parsedData = JSON.parse(parsedData);
-                                        if (parsedData.Status == "Ok!") {
+                                        var parsedData = JSON.parse(data.responseText);
+                                        if (parsedData.Status == true) {
                                             alertify.success(parsedData.Data);
                                             viewModel.SelectedVersion().SelectVersion();
                                             self.SelectedFiles([]);
                                         }
                                         else {
-                                            alertify.error(parsedData.Data);
+                                            alertify.error(parsedData.Exception);
                                         }
                                     }
                                 }

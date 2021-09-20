@@ -15,17 +15,18 @@ namespace SPWSAppDeploymentAPINETFX.Models
     {
         [Key]
         public long ClientProfileId { get; set; }
+        public string SID { get; set; }
+        public string Asset { get; set; }
 
-        public string AssetTag { get; set; }
         public static List<ClientProfile> local;
 
-        public static async Task ReloadLocal()
+        public static Task ReloadLocal()
         {
-            await Task.Factory.StartNew(() =>
+            return Task.Factory.StartNew(() =>
             {
                 using (var adc = new ADContext())
                 {
-                    ClientProfile.local = adc.Database.SqlQuery<ClientProfile>($"SELECT * FROM dbo.ClientProfiles").ToList();
+                    local = adc.Database.SqlQuery<ClientProfile>($"SELECT * FROM dbo.ClientProfile").ToList();
                 }
             });
         }
@@ -41,13 +42,13 @@ namespace SPWSAppDeploymentAPINETFX.Models
         public string DataType { get; set; }
         public string Value { get; set; }
         public static List<ClientProfileDetail> local;
-        public static async Task ReloadLocal()
+        public static Task ReloadLocal()
         {
-            await Task.Factory.StartNew(() =>
+            return Task.Factory.StartNew(() =>
             {
                 using (var adc = new ADContext())
                 {
-                    ClientProfileDetail.local = adc.Database.SqlQuery<ClientProfileDetail>($"SELECT * FROM dbo.ClientProfileDetails").ToList();
+                    local = adc.Database.SqlQuery<ClientProfileDetail>($"SELECT * FROM dbo.ClientProfileDetails").ToList();
                 }
             });
         }
@@ -61,13 +62,13 @@ namespace SPWSAppDeploymentAPINETFX.Models
         public long ClientProfileGroupId { get; set; }
         public long ClientProfileId { get; set; }
         public static List<ClientProfileGroupMember> local;
-        public static async Task ReloadLocal()
+        public static Task ReloadLocal()
         {
-            await Task.Factory.StartNew(() =>
+            return Task.Factory.StartNew(() =>
             {
                 using (var adc = new ADContext())
                 {
-                    ClientProfileGroupMember.local = adc.Database.SqlQuery<ClientProfileGroupMember>($"SELECT * FROM dbo.ClientProfileGroupMemberships").ToList();
+                    local = adc.Database.SqlQuery<ClientProfileGroupMember>($"SELECT * FROM dbo.ClientProfileGroupMemberships").ToList();
                 }
             });
         }
@@ -79,13 +80,13 @@ namespace SPWSAppDeploymentAPINETFX.Models
         public long ClientProfileGroupId { get; set; }
         public string Name { get; set; }
         public static List<ClientProfileGroup> local;
-        public static async Task ReloadLocal()
+        public static Task ReloadLocal()
         {
-            await Task.Factory.StartNew(() =>
+            return Task.Factory.StartNew(() =>
             {
                 using (var adc = new ADContext())
                 {
-                    ClientProfileGroup.local = adc.Database.SqlQuery<ClientProfileGroup>($"SELECT * FROM dbo.ClientProfileGroups").ToList();
+                    local = adc.Database.SqlQuery<ClientProfileGroup>($"SELECT * FROM dbo.ClientProfileGroups").ToList();
                 }
             });
         }
@@ -158,9 +159,7 @@ namespace SPWSAppDeploymentAPINETFX.Models
                 using (ADContext context = new ADContext())
                 {
                     local = context.Database.SqlQuery<ServerProfile>("SELECT * FROM dbo.ServerProfiles").ToList();
-
                 }
-
             });
         }
     }
@@ -171,6 +170,16 @@ namespace SPWSAppDeploymentAPINETFX.Models
         public long UserId { get; set; }
         public string DomainName { get; set; }
         public string UserName { get; set; }
+        public static List<ADUser> local;
+        public static Task ReloadLocal() {
+            return Task.Factory.StartNew(() =>
+            {
+                using (ADContext context = new ADContext())
+                {
+                    local = context.Database.SqlQuery<ADUser>("SELECT * FROM dbo.Users").ToList();
+                }
+            });
+        }
     }
 
     public class App
@@ -245,7 +254,7 @@ namespace SPWSAppDeploymentAPINETFX.Models
             modelBuilder.Entity<SystemInstallationRecord>().ToTable("SystemInstallationRecords");
             modelBuilder.Entity<ServerProfile>().ToTable("ServerProfiles");
             modelBuilder.Entity<ADUser>().ToTable("Users");
-            modelBuilder.Entity<ClientProfile>().ToTable("ClientProfiles");
+            modelBuilder.Entity<ClientProfile>().ToTable("ClientProfile");
             modelBuilder.Entity<ClientProfileDetail>().ToTable("ClientProfileDetails");
             modelBuilder.Entity<ClientProfileGroup>().ToTable("ClientProfileGroups");
             modelBuilder.Entity<ClientProfileGroupMember>().ToTable("ClientProfileGroupMemberships");
@@ -329,5 +338,13 @@ namespace SPWSAppDeploymentAPINETFX.Models
 
         //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) =>
         //    optionsBuilder.UseSqlServer(this.ConnectionString);
+    }
+
+
+    public class AppJsonResponse
+    {
+        public bool Status { get; set; } = false;
+        public string Data { get; set; }
+        public string Exception { get; set; }
     }
 }

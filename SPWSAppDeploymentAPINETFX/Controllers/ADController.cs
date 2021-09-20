@@ -10,74 +10,44 @@ using System.Web.Http;
 
 namespace SPWSAppDeploymentAPINETFX.Controllers
 {
-    //[Route("[controller]/[action]")]
     public class ADController : ApiController
     {
-        // GET api/<controller>
-        //public IEnumerable<string> Get()
+        //[Route("AD/GetServers")]
+        //[HttpGet]
+        //public string GetServers()
         //{
-        //    return new string[] { "value1", "value2" };
+        //    string result = "";
+        //    try
+        //    {
+        //        var devserverContext = new ServerInstance("172.17.147.86", "sa", "devdbsvr");
+        //        var acsserverContext = new ServerInstance("172.17.147.71", "sa", "spwsadmin");
+        //        var Dapps = devserverContext.Database.SqlQuery<App>("Select * FROM dbo.Apps").ToList();
+        //        var Aapps = acsserverContext.Database.SqlQuery<App>("Select * FROM dbo.Apps").ToList();
+        //        List<App> applist = new List<App>();
+        //        applist.AddRange(Dapps);
+        //        applist.AddRange(Aapps);
+        //        result += Newtonsoft.Json.JsonConvert.SerializeObject(applist);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        result = ex.ToString();
+        //    }
+        //    return result;
         //}
-
-        //// GET api/<controller>/5
-        //public string Get(int id)
-        //{
-        //    return "value";
-        //}
-
-        //// POST api/<controller>
-        //public void Post([FromBody] string value)
-        //{
-        //}
-
-        //// PUT api/<controller>/5
-        //public void Put(int id, [FromBody] string value)
-        //{
-        //}
-
-        //// DELETE api/<controller>/5
-        //public void Delete(int id)
-        //{
-        //}
-        [Route("AD/GetServers")]
-        [HttpGet]
-        public string GetServers()
-        {
-            string result = "";
-            try
-            {
-                var devserverContext = new ServerInstance("172.17.147.86", "sa", "devdbsvr");
-                var acsserverContext = new ServerInstance("172.17.147.71", "sa", "spwsadmin");
-                var Dapps = devserverContext.Database.SqlQuery<App>("Select * FROM dbo.Apps").ToList();
-                var Aapps = acsserverContext.Database.SqlQuery<App>("Select * FROM dbo.Apps").ToList();
-                List<App> applist = new List<App>();
-                applist.AddRange(Dapps);
-                applist.AddRange(Aapps);
-                result += Newtonsoft.Json.JsonConvert.SerializeObject(applist);
-                //result += Newtonsoft.Json.JsonConvert.SerializeObject(Aapps);
-                //var devserverApps = devserverContext.Apps.
-            }
-            catch (Exception ex)
-            {
-                result = ex.ToString();
-                //throw;
-            }
-            return result;
-        }
 
         [Route("AD/GetClients")]
         [HttpGet]
-        public string GetClients()
+        public AppJsonResponse GetClients()
         {
-            string result = "";
+            AppJsonResponse result = new AppJsonResponse();
             try
             {
-                result = Newtonsoft.Json.JsonConvert.SerializeObject(ADHub.sClients);
+                result.Data = Newtonsoft.Json.JsonConvert.SerializeObject(ADHub.sClients);
+                result.Status = true;
             }
             catch (Exception ex)
             {
-                result = ex.ToString(); 
-                //throw;
+                result.Exception = ex.ToString();
             }
             return result;
         }
@@ -104,7 +74,6 @@ namespace SPWSAppDeploymentAPINETFX.Controllers
                         DateTime = DateTime.Now,
                         Task = "GetTask",
                         Status = ADHub.ServerRequestStatus.Pending,
-
                     };
                     ADHub.sRequest.Add(newServerRequest);
                     instance.Clients.Client(client.ConnectionId).getTask(newServerRequest.RequestId);
@@ -130,11 +99,7 @@ namespace SPWSAppDeploymentAPINETFX.Controllers
             catch (Exception ex)
             {
                 result = ex.ToString();
-                //throw;
             }
-
-
-
             return result;
         }
 
@@ -193,7 +158,7 @@ namespace SPWSAppDeploymentAPINETFX.Controllers
 
         [Route("AD/CustomTask/{HostName}/{TaskPath}/{Arguments}")]
         [HttpGet]
-        public string  CustomTask(string HostName,string TaskPath,string Arguments)
+        public string CustomTask(string HostName,string TaskPath,string Arguments)
         {
             string result = "";
             string a = "";
@@ -209,11 +174,5 @@ namespace SPWSAppDeploymentAPINETFX.Controllers
             }
             return result;
         }
-
-
-
-
-
-        //[]
     }
 }

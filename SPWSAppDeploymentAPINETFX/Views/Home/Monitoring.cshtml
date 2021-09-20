@@ -1,15 +1,4 @@
 ﻿
-<style>
-   
-    .active {
-       
-        color: green;
-    }
-    .inactive {
-     
-        color: red;
-    }
-</style>
 <div class="container-fluid">
     <div class="row">
         <h2>Header / Sorting / Filter</h2>
@@ -33,7 +22,7 @@
                     </div>
                     <div data-bind="css: {hidden: !isVisible}, foreach: GroupClients">
                         <!--ko using: Client-->
-                        <a data-bind="class: Style,click: clickEvent">
+                        <a data-bind="click: clickEvent, class: StyleStatus">
                             <span data-bind="text: HostName"></span>
                         </a>
                         <!--/ko-->
@@ -196,9 +185,10 @@
 {
     <script type="text/javascript">
         var viewModel;
-        function Client(ClientProfileId, ConnectionId, HostName, IPAddress, isActive) {
+        function Client(ClientProfileId,SID, ConnectionId, HostName, IPAddress, isActive) {
             var self = this;
             self.ClientProfileId = ko.observable(ClientProfileId);
+            self.SID = ko.observable(SID);
             self.ConnectionId = ko.observable(ConnectionId);
             self.HostName = ko.observable(HostName);
             self.IPAddress = ko.observable(IPAddress);
@@ -239,8 +229,9 @@
                 viewModel.selectedClients();
             };
             self.isActive = ko.observable(isActive);
-            self.Style = ko.computed(function () {
-                return self.isActive() ? "active" : "inactive";
+            self.StyleStatus = ko.computed(function () {
+                console.log(self.isActive());
+                return self.isActive() == true ? "active" : "inactive";
             });
             self.MemberDetails = ko.observableArray();
             self.GetMemberDetails = function () {
@@ -255,7 +246,7 @@
                                 //console.log(JSON.parse(data.responseText));
                                 //console.log(JSON.parse(JSON.parse(data.responseText)));
                                 self.MemberDetails([]);
-                                var parsedData = JSON.parse(JSON.parse(data.responseText));
+                                var parsedData = JSON.parse(data.responseText);
                                 var detailData = JSON.parse(parsedData.Data);
                                 for (var i = 0; i < detailData.length; i++) {
                                     var detail = detailData[i];
@@ -274,7 +265,7 @@
                         statusCode: {
                             200: function (data) {
                                 self.AppsList([]);
-                                var parseData = JSON.parse(JSON.parse(data.responseText));
+                                var parseData = JSON.parse(data.responseText);
                                 var data = JSON.parse(parseData.Data);
                                 for (var i = 0; i < data.length; i++) {
                                     var d = data[i];
@@ -335,31 +326,19 @@
                     {
                         200: function (data) {
                             console.log(data);
-                            //var processedText = data.responseText.replaceAll("\\", "");
-                            //processedText = processedText.replaceAll("\"", '"');
-                            var processedText = data.responseText.replaceAll('""', '"');
+                            var processedText = data.responseText;
                             var parsedData = JSON.parse(processedText);
-                            parsedData = JSON.parse(parsedData);
-                            //viewModel.Clients([]);
-                            for (var i = 0; i < parsedData.length; i++) {
-                                var currentData = parsedData[i];
-                                var match = ko.utils.arrayFirst(viewModel.Clients(), function (d) {
-                                    return d.ClientProfileId() == currentData.ClientProfileId;
-                                });
-                                
-                                if (match) {
-                                   
-                                    match.isActive(currentData.isActive);
-                                    match.ConnectionId(currentData.ConnectionId);
-                                }
-                                else {
-                                 
-                                    var client = new Client(currentData.ClientProfileId, currentData.ConnectionId, currentData.HostName, currentData.IPAddress, currentData.isActive);
+                            if (parsedData.Status == true) {
+                                viewModel.Clients([]);
+                                var parsedData = JSON.parse(parsedData.Data);
+                                for (var i = 0; i < parsedData.length; i++) {
+                                    var currentData = parsedData[i];
+
+                                    var client = new Client(currentData.ClientProfileId, currentData.SID, currentData.ConnectionId, currentData.HostName, currentData.IPAddress, currentData.isActive);
 
                                     viewModel.Clients.push(client);
-                                }
-                               
 
+                                }
                             }
 
                         }
@@ -374,21 +353,9 @@
                     dataType: "application/json",
                     statusCode: {
                         200: function (data) {
-                            //console.log(data);
                             var responseText = data.responseText;
-                            //var dataText = responseText.substr(responseText.indexOf("Data") + 7, responseText.length - (responseText.indexOf("Data") + 7 - 2));
-                            //responseText = responseText.substr(0, responseText.indexOf("Data") + 7) +"\"\"" +responseText.substr(responseText.length - 2);
-                            //responseText = responseText.trimStart('"');
-                            //responseText = responseText.trimEnd('"');
-                            //console.log(respon10e)
-
-                            //console.log(responseText);
-                            //alertify.alert(responseText);
-                            //console.log(JSON.parse(responseText.toString()));
                             var parsedData = JSON.parse(responseText);
-                            parsedData = JSON.parse(parsedData);
-                            //alertify.alert(parsedData.Status);
-                            if (parsedData.Status == "Ok!") {
+                            if (parsedData.Status == true) {
                                 var groupData = JSON.parse(parsedData.Data);
                                 viewModel.ClientProfileGroup([]);
                                 for (var i = 0; i < groupData.length; i++) {
@@ -397,7 +364,7 @@
                                 }
                             }
                             else {
-
+                                console.log(parsedData.Exception);
                             }
                         }
                     }
@@ -413,18 +380,18 @@
                         200: function (data) {
                             console.log(data);
                             viewModel.Servers([]);
-                            var processedText = data.responseText.replaceAll('""', '"');
+                            var processedText = data.responseText;
                             var parsedData = JSON.parse(processedText);
-                            parsedData = JSON.parse(parsedData);
-                            var processedData = JSON.parse(parsedData.Data);
-                            if (parsedData.Status == "Ok!") {
+
+                            if (parsedData.Status == true) {
+                                var processedData = JSON.parse(parsedData.Data);
                                 for (var i = 0; i < processedData.length; i++) {
                                     var instance = processedData[i];
                                     viewModel.Servers.push(new Server(instance.IPAddress, instance.ServerName));
                                 }
                             }
                             else {
-                                alertify.notify(parsedData.Data);
+                                alertify.notify(parsedData.Exception);
                             }
 
                         }
@@ -457,8 +424,8 @@
                         {
                             200: function (data) {
                                 console.log(data);
-                                var parsedData = JSON.parse(JSON.parse(data.responseText));
-                                if (parsedData.Status == "Ok!") {
+                                var parsedData = JSON.parse(data.responseText);
+                                if (parsedData.Status == true) {
                                     
                                     var dData = JSON.parse(parsedData.Data);
                                     for (var i = 0; i < dData.length; i++) {
@@ -499,8 +466,7 @@
                                 //data = data.trimStart('"');
                                 //data = data.trimEnd('"')
                                 var parsedData = JSON.parse(data.responseText);
-                                parsedData = JSON.parse(parsedData);
-                                if (parsedData.Status == "Ok!") {
+                                if (parsedData.Status == true) {
                                     self.GroupClients([]);
                                     var data = JSON.parse(parsedData.Data);
                                     for (var i = 0; i < data.length; i++) {
@@ -549,7 +515,7 @@
                     var index = [];
                     for (var i = 0; i < self.selectedClients().length; i++) {
                         var client = self.selectedClients()[i];
-                        index.push(client.ClientProfileId());
+                        index.push(client.SID());
                     }
                     $.ajax(addGroupMembers + "/" + self.AGSelectedGroup().ClientProfileGroupId(),
                         {
@@ -561,7 +527,7 @@
                                 200: function (data) {
                                     //console.log(data);
                                     var parsedData = JSON.parse(data.responseText);
-                                    if (parsedData.Status == "Ok!") {
+                                    if (parsedData.Status == true) {
                                         self.AGSelectedGroup().GetMembers();
                                     }
                                 }
@@ -659,44 +625,44 @@
 
             }
             self.CloseApp = function () {
-                var ClientIds = [];
+                var SIDs = [];
                 for (var i = 0; i < self.selectedClients().length; i++) {
                     var clientProfile = self.selectedClients()[i];
-                    ClientIds.push(clientProfile.ClientProfileId());
+                    SIDs.push(clientProfile.SID());
                 }
                 var serverName = self.SelectedServer().ServerName();
                 var appId = self.SelectedApp().AppId();
-                adHub.server.closeApp(ClientIds, serverName, appId);
+                adHub.server.closeApp(SIDs, serverName, appId);
             }
 
             self.PushUpdates = function () {
-                var ClientIds = [];
+                var SIDs = [];
                 for (var i = 0; i < self.selectedClients().length; i++) {
                     var clientProfile = self.selectedClients()[i];
-                    ClientIds.push(clientProfile.ClientProfileId());
+                    SIDs.push(clientProfile.SID());
                 }
-                adHub.server.pushUpdates(ClientIds); 
+                adHub.server.pushUpdates(SIDs);
             }
 
             self.InstallApp = function () {
-                var ClientIds = [];
+                var SIDs = [];
                 for (var i = 0; i < self.selectedClients().length; i++) {
                     var clientProfile = self.selectedClients()[i];
-                    ClientIds.push(clientProfile.ClientProfileId());
+                    SIDs.push(clientProfile.SID());
                 }
                 var serverName = self.SelectedServer().ServerName();
                 var appId = self.SelectedApp().AppId();
-                adHub.server.installApp(ClientIds,serverName,appId); 
+                adHub.server.installApp(SIDs,serverName,appId);
             }
             self.UninstallApp = function () {
-                var ClientIds = [];
+                var SIDs = [];
                 for (var i = 0; i < self.selectedClients().length; i++) {
                     var clientProfile = self.selectedClients()[i];
-                    ClientIds.push(clientProfile.ClientProfileId());
+                    SIDs.push(clientProfile.SID());
                 }
                 var serverName = self.SelectedServer().ServerName();
                 var appId = self.SelectedApp().AppId();
-                adHub.server.uninstallApp(ClientIds, serverName, appId); 
+                adHub.server.uninstallApp(SIDs, serverName, appId);
 
             }
             self.addGroupText = ko.observable('');

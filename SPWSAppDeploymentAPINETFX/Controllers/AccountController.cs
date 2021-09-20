@@ -18,25 +18,28 @@ namespace SPWSAppDeploymentAPINETFX.Controllers
         [HttpPost]
         public string Login([FromBody] LoginRequest req)
         {
-            string result = "";
-
-
+            string result = string.Empty;
             try
             {
-                IAuthenticationManager authenticationManager = HttpContext.Current.GetOwinContext().Authentication;
-                var authService = new ActiveDirectoryAuthenticationService(authenticationManager);
-                var authResult = authService.SignIn(req.Username, req.Password);
-                result = Newtonsoft.Json.JsonConvert.SerializeObject(authResult);
-                //IAuthenticationManager authManager = Request.GetAction
-                //Request.GetOwinContext().Authentication
+                ADUser user = ADUser.local.FirstOrDefault(x => x.DomainName.Equals(req.Username));
+                if (user != null)
+                {
+                    IAuthenticationManager authenticationManager = HttpContext.Current.GetOwinContext().Authentication;
+                    var authService = new ActiveDirectoryAuthenticationService(authenticationManager);
+                    var authResult = authService.SignIn(req.Username, req.Password);
+                    authResult.user = user.UserName;
+                    result = Newtonsoft.Json.JsonConvert.SerializeObject(authResult);
+                }
+                else
+                {
+                    AuthenticationResult res = new AuthenticationResult { ErrorMessage = "Unauthorize Login!", IsSuccess = false };
+                    result = Newtonsoft.Json.JsonConvert.SerializeObject(res);
+                }
             }
             catch (Exception ex)
             {
                 result = ex.ToString();
-                //throw;
             }
-
-
 
             return result;
         }
@@ -45,6 +48,13 @@ namespace SPWSAppDeploymentAPINETFX.Controllers
         {
             public string Username { get; set; }
             public string Password { get; set; }
+        }
+
+        public class AuthenticationResult
+        {
+            public string ErrorMessage { get; set; }
+            public bool IsSuccess { get; set; }
+            public string user { get; set; }
         }
     }
 }

@@ -4,13 +4,16 @@ console.log("main function");
 var viewModel;
 
 
-function Client(ConnectionId, HostName, IPAddress) {
+function Client(ClientProfileId,SID,ConnectionId, HostName, IPAddress) {
     var self = this;
+    self.ClientProfileId = ko.observable(ClientProfileId);
+    self.SID = ko.observable(SID);
     self.ConnectionId = ko.observable(ConnectionId);
     self.HostName = ko.observable(HostName);
     self.IPAddress = ko.observable(IPAddress);
     self.Url = (getClientTaskUrl + "/" + self.HostName());
     self.GetTasks = function () {
+        viewModel.SelectedClient(self);
         $.ajax(self.Url,
             {
                 method: "GET",
@@ -64,6 +67,7 @@ function Task(ImageName,PID,MemUsage) {
                 {
                     200: function (data) {
                         console.log(data);
+                        viewModel.SelectedClient().GetTasks();
                     }
                 }
             }
@@ -81,19 +85,19 @@ function RefreshClients() {
             {
                 200: function (data) {
                     console.log(data);
-                    //var processedText = data.responseText.replaceAll("\\", "");
-                    //processedText = processedText.replaceAll("\"", '"');
-                    var processedText = data.responseText.replaceAll('""','"');
+                    var processedText = data.responseText;
                     var parsedData = JSON.parse(processedText);
-                    parsedData = JSON.parse(parsedData);
-                    viewModel.Clients([]);
-                    for (var i = 0; i < parsedData.length; i++) {
-                        var currentData = parsedData[i];
+                    if (parsedData.Status == true) {
+                        viewModel.Clients([]);
+                        var parsedData = JSON.parse(parsedData.Data);
+                        for (var i = 0; i < parsedData.length; i++) {
+                            var currentData = parsedData[i];
 
-                        var client = new Client(currentData.ConnectionId, currentData.HostName, currentData.IPAddress);
+                            var client = new Client(currentData.ClientProfileId,currentData.SID, currentData.ConnectionId, currentData.HostName, currentData.IPAddress);
 
-                        viewModel.Clients.push(client);
+                            viewModel.Clients.push(client);
 
+                        }
                     }
 
                 }
@@ -104,7 +108,8 @@ function RefreshClients() {
 function ViewModel() {
     var self = this;
     self.Tasks = ko.observableArray();
-    self.Clients = ko.observableArray();
+    self.Clients = ko.observableArray([]);
+    self.SelectedClient = ko.observable();
     self.Urls = ko.observableArray();
     self.SelectedClient = ko.observable();
 }
